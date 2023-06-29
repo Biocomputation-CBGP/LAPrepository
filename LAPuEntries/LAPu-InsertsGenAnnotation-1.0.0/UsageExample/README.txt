@@ -1,0 +1,1 @@
+python3 alignment_script.py sequencing_results txt Pseudomonas_putida_KT2440_110.fna Pseudomonas_putida_KT2440_110.csv -out results_annotation -quality ab1 -seq sanger -identity map_identity_plate.csv
