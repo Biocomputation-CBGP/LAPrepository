@@ -121,6 +121,9 @@ Opentrons OT-2
 ## `distribute_z_tracking_falcon15ml`
 
 ### Objective
+Function that will distribute from 1 well (15mL falcon tube) to a list of wells tracking the height of the 15mL falcon tube to avoid the pipette getting wet
+
+This function does not track if there is enough volume to transfer to all the wells
 
 ### Tested systems
 
@@ -128,11 +131,52 @@ Opentrons OT-2
 
 ### Requirements
 
+* Function `position_dispense_aspirate_falcon15ml`
+
 ### Input
+5 Inputs required:
+1. **pipette_used** (_opentrons.protocol_api.instrument_context.InstrumentContext_): Pipette that will distribute or transfer the _vol_distribute_well_ to the _pos_final_. For example:
+        
+        P20 Single-Channel GEN2 on right mount object
+2. **vol_source** (_float_): Initial volume of the _pos_source_. For example:
+
+        10000
+3. **vol_distribute_well** (float): Volume distributed to the _pos_final_. For example:
+
+        15
+4. **pos_source** (_opentrons.protocol_api.labware.Well_): Falcon containing the liquid will be distributed to the _pos_final_ wells. For example:
+
+        A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1
+5. **pos_final** (_list_): list of positions that the _pipette_used_ will distribute the volume set in _vol_distribute_well_. For example:
+
+        [A1 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A2 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A3 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2]
 
 ### Output
+* Wells established in _pos_final_ with _vol_distribute_well_ uL volume in them
 
 ### Summary of functioning
+1. While loop that will go until there are no wells in the list _pos_final_:
+    1. Check if the position before and after taking the volume is the same with the function `position_dispense_aspirate_falcon15ml` for the rest of the wells in the _pos_final_
+    
+        **Same height**
+    
+        1. _pipette_used_ will distribute the _vol_distribute_well_ to the positions in _pos_final_
+        2. Subtract the volume that has been distributed from the _pos_source_
+    
+        **Different height**
+    
+        1. Loop over the different length positions in _pos_final_
+        2. Check if, with that length position, the position before and after the distribution will be the same
+        
+            _Same height_
+            
+            1. Go to the next length position
+            
+            _Different height_
+            
+            1. _pipette_used_ will distribute the _vol_distribute_well_ to the positions in _pos_final_
+            2. Subtract the volume that has been distributed from the _pos_source_
+            3. Break the for loop
 
 ## `find_well_by_value`
 
