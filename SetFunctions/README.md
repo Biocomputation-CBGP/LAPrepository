@@ -1,10 +1,10 @@
 # Function Leyend
 This repository contains the functions used in the LAP entries of the LAP repository.
+
 Each file is one function used in at least 1 LAP entry.
 
 
 ## `check_tip_and_pick`
-
 
 ### Objective
 
@@ -66,3 +66,213 @@ Opentrons OT-2
     	2. Reset tip rack
 
 3. Pick a tip with the _pipette_used_
+
+## `define_tiprack`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `distribute_z_tracking_falcon15ml`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `find_well_by_value`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `generate_combinations_dict`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `generator_positions`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `mixing_eppendorf_15`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `number_tubes_needed`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `optimal_pipette_use`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `position_dispense_aspirate_falcon15ml`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `run_program_thermocycler`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `setting_labware`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `tube_to_tube_transfer`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `vol_distribute_2pips`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `wells_selection`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
+
+## `z_positions_mix`
+
+### Objective
+
+### Tested systems
+
+### Requirements
+
+### Input
+
+### Output
+
+### Summary of functioning
