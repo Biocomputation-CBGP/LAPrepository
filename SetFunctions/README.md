@@ -29,7 +29,7 @@ Opentrons OT-2
 2. **position\_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value. For example:
 
         {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables\_define\_tiprack** (_class_): script class with attributes APINameTipR (name of the tiprack associated with right mount pipette) and APINameTipL (name of the tiprack associated with left mount pipette). For example:
+3. **variables\_define\_tiprack** (_class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette). For example:
 
         class Example():
             def __init__ (self):
@@ -100,8 +100,9 @@ Opentrons OT-2
 
 ### Output
 
-* Dictionary with the selected position as a key and the tiprack defined as a value. For example
-		{3: opentrons_96_tiprack_300ul}
+* Dictionary with the selected position as a key and the tiprack defined as a value. For example:
+
+  	{3: opentrons_96_tiprack_300ul}
 
 ### Summary of functioning
 
