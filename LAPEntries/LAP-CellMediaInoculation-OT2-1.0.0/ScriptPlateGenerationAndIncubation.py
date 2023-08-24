@@ -12,7 +12,8 @@ import opentrons
 import pandas as pd
 import math
 import random
-from opentrons.motion_planning.deck_conflict import DeckConflictError #in version 2.14
+from opentrons.motion_planning.deck_conflict import DeckConflictError #in version 6.3.1
+from opentrons.protocol_api.labware import OutOfTipsError # in version 6.3.1
 
 # Classes definitions
 # ----------------------------------
@@ -30,7 +31,7 @@ class UserVariables:
 		self.numberSourcePlates = general[general["Variables Names"] == "Number of Source Plates"]["Value"].values[0]
 		self.samplesPerPlate = list(each_plate[each_plate["Variables Names"] == "Samples per plate"].values[0][1:])
 		self.firstWellSamplePerPlate = list(each_plate[each_plate["Variables Names"] == "First Well With Sample"].values[0][1:])
-		self.nameAntibiotics = general[general["Variables Names"] == "Name Medias"]["Value"].values[0].replace(" ","").split(",")
+		self.nameAntibiotics = general[general["Variables Names"] == "Name Medias"]["Value"].values[0]
 
 		self.volumeAntibiotic = general[general["Variables Names"] == "Volume of Media to Transfer (uL)"]["Value"].values[0]
 		self.volumeSample = general[general["Variables Names"] == "Volume of Sample to Transfer (uL)"]["Value"].values[0]
@@ -42,7 +43,7 @@ class UserVariables:
 		self.APINameSamplePlate = general[general["Variables Names"] == "Name Source Plate"]["Value"].values[0]
 		self.APINameIncubationPlate = general[general["Variables Names"] == "Name Final Plate"]["Value"].values[0]
 		self.APINameFalconPlate = general[general["Variables Names"] == "Name 15mL Tuberack"]["Value"].values[0]
-		self.valueReplaceTiprack = pipettes[pipettes["Variables Names"] == "Replace Tipracks"]["Value"].values[0].lower()
+		self.valueReplaceTiprack = pipettes[pipettes["Variables Names"] == "Replace Tipracks"]["Value"].values[0]
 		self.APINameTipR = pipettes[pipettes["Variables Names"] == "API Name Right Pipette TipRack"]["Value"].values[0]
 		self.APINameTipL = pipettes[pipettes["Variables Names"] == "API Name Left Pipette TipRack"]["Value"].values[0]
 		
@@ -61,6 +62,21 @@ class UserVariables:
 		"""
 		
 		labware_context = opentrons.protocol_api.labware
+		
+		# Check none of the values are empty
+		if any(pd.isna(element) for element in [self.numberSourcePlates, self.nameAntibiotics, self.volumeAntibiotic, self.volumeSample, self.APINamePipR, self.APINamePipL, self.startingTipPipR, self.startingTipPipL, self.APINameSamplePlate, self.APINameIncubationPlate, self.APINameFalconPlate, self.valueReplaceTiprack, self.APINameTipR, self.APINameTipL, self.replaceTiprack]):
+			raise Exception("None of the cells in the sheets 'GeneralVariables' and 'PipetteVariables' can be left empty")
+		else:
+			self.nameAntibiotics = self.nameAntibiotics.replace(" ","").split(",")
+			self.valueReplaceTiprack =self.valueReplaceTiprack.lower()
+		if all(pd.isna(element) for element in self.samplesPerPlate):
+			raise Exception("The Variable 'Samples per plate' cannot be left completely empty, it is necessary to have as many values as the value in 'Number of Source Plates'")
+		if all(pd.isna(element) for element in self.firstWellSamplePerPlate):
+			raise Exception("The Variable 'First Well With Sample' cannot be left completely empty, it is necessary to have as many values as the value in 'Number of Source Plates'")
+		if all(pd.isna(element) for element in self.antibioticsPerPlate):
+			raise Exception("The Variable 'Media(s) per plate' cannot be left completely empty, it is necessary to have as many values as the value in 'Number of Source Plates'")
+		
+		
 		# Check that the source and final plate are realy in the custom_labware namespace
 		# If this raises an error some other lines of this function are not going to work, that is why we need to quit the program before and not append it to the errors
 		try:
@@ -69,7 +85,7 @@ class UserVariables:
 			definition_rack = labware_context.get_labware_definition(self.APINameFalconPlate)
 			definition_tiprack_right = labware_context.get_labware_definition(self.APINameTipR)
 			definition_tiprack_left = labware_context.get_labware_definition(self.APINameTipL)
-		except:
+		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
 			raise Exception("One or more of the introduced labwares or tipracks are not in the custom labware directory of the opentrons. Check for any typo of the api labware name.")
 		
 		# Check if there is some value of the plates where it shouldnt in the per plate sheet
@@ -113,10 +129,15 @@ class UserVariables:
 		all_plates_antibiotics = ",".join(self.antibioticsPerPlate[:self.numberSourcePlates]).replace(" ","").split(",")
 		all_plates_antibiotics = list(dict.fromkeys(all_plates_antibiotics))
 		if all(antibiotic in self.nameAntibiotics for antibiotic in all_plates_antibiotics) == False:
-			raise Exception(f"Following antibiotics are not defined in variable 'Name Antibiotics': {set(all_plates_antibiotics)-set(self.nameAntibiotics)}")
+			raise Exception(f"The following antibiotic(s) are not defined in variable 'Name Antibiotics': {set(all_plates_antibiotics)-set(self.nameAntibiotics)}")
 		if all(antibiotic in all_plates_antibiotics for antibiotic in self.nameAntibiotics) == False:
-			raise Exception(f"Following antibiotics are not being used: {set(self.nameAntibiotics)-set(all_plates_antibiotics)}")
-			
+			raise Exception(f"The following antibiotic(s) are not being used: {set(self.nameAntibiotics)-set(all_plates_antibiotics)}")
+		
+		# Check that if the tipracks are the same, the initial tips should be ethe same as well
+		if not pd.isna(self.APINamePipL) and not pd.isna(self.APINamePipR):
+			if self.APINameTipL == self.APINameTipR:
+				if self.startingTipPipL != self.startingTipPipR:
+					raise Exception("If the tipracks of the right and left mount pipettes are the same, the initial tip should be as well.")
 		
 		# Control of typos in the initial tip both of right pipette and left pipette, i.e., check if that tip exist
 		if self.startingTipPipR not in definition_tiprack_right["groups"][0]["wells"]:
@@ -150,7 +171,11 @@ class UserVariables:
 		for index_plate, number_reactions in enumerate(self.samplesPerPlate[:self.numberSourcePlates]):
 			if len(definition_source_plate["wells"].keys()) < number_reactions+list(definition_source_plate["wells"].keys()).index(self.firstWellSamplePerPlate[index_plate]):
 				raise Exception(f"Having the {self.firstWellSamplePerPlate[index_plate]} as the first well with sample and {number_reactions} wells with sample does not fit in the {self.APINameSamplePlate} labware")
-
+		
+		# Finally, we check that the volume of media or sample to transfer is not 0
+		if self.volumeAntibiotic <= 0 or self.volumeSample <= 0:
+			raise Exception("Neither 'Volume of Sample to Transfer (uL)' or 'Volume of Media to Transfer (uL)' can be lower or equal than 0 ul")
+		
 class SetParameters:
 	"""
 	After the checking the UserVariable class we can assign what we will be using to track the plates
@@ -161,7 +186,6 @@ class SetParameters:
 		self.numberAntibiotics = 0
 		self.pipR = None
 		self.pipL = None
-		self.sameTiprack = None
 		self.samplePlates = {}
 		self.incubationPlates = {}
 		self.antibioticWells = {}
@@ -187,6 +211,10 @@ class SetParameters:
 		if self.pipL.channels != 1:
 			raise Exception("Left pipette needs to have 1 channel, i.e., single channel")
 		
+		# Check if the volumes can be picked with these set of pipettes
+		if self.pipR.min_volume > user_variables.volumeSample or self.pipL.min_volume > user_variables.volumeAntibiotic:
+			raise Exception ("Either the volume 'Volume of Sample to Transfer (uL)' or the volume 'Volume of Media to Transfer (uL)' cannot be picked by the set pipettes, try another set of volumes or pipettes")
+			
 		if user_variables.valueReplaceTiprack.lower() == "true":
 			self.replaceTiprack = True
 		elif user_variables.valueReplaceTiprack.lower() == "false":
@@ -222,7 +250,7 @@ class SetParameters:
 											   "Index First Well Sample": opentrons.protocol_api.labware.get_labware_definition(user_variables.APINameSamplePlate)["groups"][0]["wells"].index(user_variables.firstWellSamplePerPlate[index_plate]),
 											   "First Column Sample": None}
 			self.samplePlates[index_plate]["First Column Sample"] = int(self.samplePlates[index_plate]["Index First Well Sample"]/len(opentrons.protocol_api.labware.get_labware_definition(user_variables.APINameSamplePlate)["ordering"][0]))
-		
+			
 			# Incubation Plates
 			for antibiotic_source_plate in self.samplePlates[index_plate]["Antibiotics"]:
 				# Initialize with the values that we can set now
@@ -250,23 +278,32 @@ def setting_labware (number_labware, labware_name, positions, protocol, label = 
 	This function will only set the labwares in the different slots of the deck, with not calculate how many we need,
 	this way we do not have to change this function and only change the setting_labware function from protocol to protocol
 	"""
-	try:
-		position_plates = [position for position, labware in positions.items() if labware == None] # We obtain the positions in which there are not labwares
-		all_plates = {}
-		for i in range (number_labware):
-			if label == None:
-				plate = protocol.load_labware(labware_name, position_plates[i])
-			elif type(label) == str:
-				plate = protocol.load_labware(labware_name, position_plates[i], label = f"{label} {i+1}")
-			elif type(label) == list:
-				plate = protocol.load_labware(labware_name, position_plates[i], label = f"{label[i]}")
-			all_plates[position_plates[i]] = plate
-		return all_plates
-	
-	except: # There were not enough items in the position_plate to fit the number of labwares that we needed
-		raise Exception("There is not enough space in the deck for this protocol, try less samples")
+	position_plates = [position for position, labware in positions.items() if labware == None] # We obtain the positions in which there are not labwares
+	all_plates = {}
 
+	for i in range (number_labware):
+		labware_set = False # Control variable
+		for position in position_plates:
+			try:
+				if label == None:
+					plate = protocol.load_labware(labware_name, position)
+				elif type(label) == str:
+					plate = protocol.load_labware(labware_name, position, label = f"{label} {i+1} Slot {position}")
+				elif type(label) == list:
+					plate = protocol.load_labware(labware_name, position, label = f"{label[i]} Slot {position}")
+				all_plates[position] = plate
+				labware_set = True
+				break # It has set the labware so we can break from the loop of positions
+			except DeckConflictError:
+				continue
+		
+		# Control to see if the labware has been able to load in some free space. This will be tested after trying all the positions
+		if labware_set:
+			position_plates.remove(position) # We take from the lits the value that has been used or the last
+		else:
+			raise Exception(f"Not all {labware_name} have been able to be placed, try less samples or another combination of variables")
 
+	return all_plates
 
 def number_tubes_needed (vol_reactive_per_reaction_factor, number_reactions, vol_max_tube):
 	"""
@@ -322,7 +359,6 @@ def position_dispense_aspirate_falcon15ml (vol_falcon, theory_position):
 		final_position = theory_position.bottom(z = 65)
 	return final_position
 
-
 def distribute_z_tracking_falcon15ml (pipette_used, vol_source, vol_distribute_well, pos_source, pos_final):
 	"""
 	This function will distribute from a pos_source to pos_final (list) taking in account the height of aspiration of the 15mL falcon tube,
@@ -361,13 +397,12 @@ def check_tip_and_pick (pipette_used, position_deck, variables_define_tiprack, p
 	
 	In the OT-App it will appear directly in the deck but it has been added with this function
 	"""
-	# One future improvement of this function is to check if the pipettes use the same tipracks and add them to both pipettes, that way we will need less tipracks if they
+	# One future improvemnt of this function is to check if the pipettes use the same tipracks and add them to both pipettes, that way we will need less tipracks if they
 	# have the same tips associated, for exmaple, if we are using a 300 multi and single pipette
-	
 	try:
 		pipette_used.pick_up_tip()
 		# When there are no tips left in the tiprack OT will raise an error
-	except:
+	except OutOfTipsError:
 		if len(pipette_used.tip_racks) == 0:
 			position_deck = {**position_deck , **define_tiprack(pipette_used, position_deck, variables_define_tiprack, protocol)}
 			# We establish now the starting tip, it will only be with the first addition, the rest will be establish that the first tip is in A1 directly
@@ -385,9 +420,10 @@ def check_tip_and_pick (pipette_used, position_deck, variables_define_tiprack, p
 		
 		#Finally, we pick up the needed tip        
 		pipette_used.pick_up_tip()
+	
 	return
 	
-def define_tiprack(pipette, position_deck, variables_define_tiprack, protocol):
+def define_tiprack (pipette, position_deck, variables_define_tiprack, protocol):
 	positions_free = [position for position, labware in position_deck.items() if labware == None]
 	
 	if pipette.mount == "right":
@@ -404,8 +440,6 @@ def define_tiprack(pipette, position_deck, variables_define_tiprack, protocol):
 			position_deck[position] = tiprack_name
 		except DeckConflictError:
 			continue
-		except:
-			raise Exception(f"Due to conflicts of space we cannot place {tiprack_name} in the deck")
 		
 		if variables_define_tiprack.APINameTipR == variables_define_tiprack.APINameTipL:
 			protocol.loaded_instruments["right"].tip_racks.append(tiprack)
@@ -434,8 +468,39 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Read Variables Excel, define the user and protocol variables and check them for initial errors
 	
-	excel_variables = pd.read_excel("/data/user_storage/VariablesPlateIncubationValidacion.xlsx", sheet_name = ["GeneralVariables","PerPlateVariables","PipetteVariables"], engine = "openpyxl")
-	user_variables = UserVariables(excel_variables.get("GeneralVariables"),excel_variables.get("PerPlateVariables"),excel_variables.get("PipetteVariables"))
+	# Read Excel
+	excel_variables = pd.read_excel("/data/user_storage/VariablesPlateIncubation.xlsx", sheet_name = None, engine = "openpyxl")
+	# excel_variables = pd.read_excel("VariablesPlateIncubation.xlsx", sheet_name = None, engine = "openpyxl")
+	# Let's check that the minimal sheets
+	name_sheets = list(excel_variables.keys())
+
+	if not all(item in name_sheets for item in ["GeneralVariables","PerPlateVariables","PipetteVariables"]):
+		raise Exception('The Excel file needs to have the sheets "GeneralVariables","PerPlateVariables" and "PipetteVariables"\nThey must have those names')
+	
+	# Check that all variable sheets have the needed columns and variables names
+	general_variables = excel_variables.get("GeneralVariables")
+	plate_variables = excel_variables.get("PerPlateVariables")
+	pip_variables = excel_variables.get("PipetteVariables")
+
+	if not all(item in list(general_variables.columns) for item in ["Value", "Variables Names"]):
+		raise Exception("'GeneralVariables' sheet table needs to have only 2 columns: 'Variables Names' and 'Value'")
+	else:
+		if not all(item in general_variables["Variables Names"].values for item in ['Name Source Plate', 'Number of Source Plates', 'Name Final Plate', 'Volume of Sample to Transfer (uL)', 'Name Medias', 'Volume of Media to Transfer (uL)', 'Name 15mL Tuberack']):
+			raise Exception("'GeneralVariables' sheet table needs to have 7 rows with the following names: 'Name Source Plate', 'Number of Source Plates', 'Name Final Plate', 'Volume of Sample to Transfer (uL)', 'Name Medias', 'Volume of Media to Transfer (uL)', 'Name 15mL Tuberack'")
+		
+	if "Variables Names" not in list(plate_variables.columns):
+		raise Exception("'PerPlateVariables' sheet table needs to have at least 1 column, 'Variables Names'")
+	else:
+		if not all(item in plate_variables["Variables Names"].values for item in ['Samples per plate', 'Media(s) per plate', 'First Well With Sample']):
+			raise Exception("'PerPlateVariables' Sheet table needs to have 3 rows with the following names: 'Samples per plate', 'Media(s) per plate', 'First Well With Sample'")
+	
+	if not all(item in list(pip_variables.columns) for item in ["Value", "Variables Names"]):
+		raise Exception("'PipetteVariables' sheet table needs to have only 2 columns: 'Variables Names' and 'Value'")
+	else:
+		if not all(item in pip_variables["Variables Names"].values for item in ['Name Right Pipette (Multichannel)', 'API Name Right Pipette TipRack', 'Name Left Pipette (Singlechannel)', 'API Name Left Pipette TipRack','Initial Tip Left Pipette', 'Initial Tip Right Pipette', 'Replace Tipracks']):
+			raise Exception("'PipetteVariables' Sheet table needs to have 7 rows with the following names: 'Name Right Pipette (Multichannel)', 'API Name Right Pipette TipRack', 'Name Left Pipette (Singlechannel)', 'API Name Left Pipette TipRack','Initial Tip Left Pipette', 'Initial Tip Right Pipette', 'Replace Tipracks'")
+	
+	user_variables = UserVariables(general_variables, plate_variables, pip_variables)
 	user_variables.check(protocol)
 	program_variables = SetParameters()
 	program_variables.assign_variables(user_variables, protocol)
@@ -546,13 +611,13 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 		initial_column = program_variables.samplePlates[final_plate["Source Plate"]]["First Column Sample"]
 		for index_column in range(number_column_samples):
 			check_tip_and_pick(program_variables.pipR, program_variables.deckPositions, user_variables, protocol)
-			
 			program_variables.pipR.transfer(user_variables.volumeSample,
 											program_variables.samplePlates[final_plate["Source Plate"]]["Opentrons Place"].columns()[initial_column+index_column],
 											final_plate["Opentrons Place"].columns()[index_column],
 											new_tip="never")
+			program_variables.pipR.transfer(5, program_variables.samplePlates[0]["Opentrons Place"].columns()[0], final_plate["Opentrons Place"].columns()[0], new_tip="never")
 			program_variables.pipR.drop_tip()
-			
+	
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Homing
 	protocol.home()
