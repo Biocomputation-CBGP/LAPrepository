@@ -102,7 +102,7 @@ Opentrons OT-2
 
 * Dictionary with the selected position as a key and the tiprack defined as a value. For example:
 
-  	{3: opentrons_96_tiprack_300ul}
+  		{3: opentrons_96_tiprack_300ul}
 
 ### Summary of functioning
 
