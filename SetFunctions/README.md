@@ -247,7 +247,8 @@ Opentrons OT-2
 ### Input
 1 input is needed:
 1. **pd_combination** (_pandas.core.frame.DataFrame_): A pandas data frame must have at least 2 columns, the first one called "Name".
-	For instance:
+	
+ 	For instance:
 
 | Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
 | ---- | ---------------- | ------ | ------ | ------ |
@@ -259,7 +260,8 @@ Opentrons OT-2
 
 * A dictionary in which the keys are the values of the column 'Name' of the _pd_combination_ and the values are another dictionary with 2 keys, 'acceptor' and 'modules'.
 Each row of the _pd_combiantion_ will be one item of the dictionary.
-For instance:
+
+	For instance:
 		
 		{'Lv2-a1c1e1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-araC-B0015_E1-g2', 'pLacI-RBS_BCD12-LacI-rpoC-g3']}, 'Lv2-a1d1b1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-LacI-rpoC-g2', 'pLacI-RBS_BCD12-araC-B0015_E1-g3']}, 'Lv2-a2b2': {'acceptor': 'v_gA', 'modules': ['pBad-RBS_BCD12-GFPmuy3-rpoC-g1R', 'pBad-RBS_BCD12-araC-B0015_E1-g2']}}
 
