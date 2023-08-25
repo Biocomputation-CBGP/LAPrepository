@@ -71,7 +71,7 @@ Opentrons OT-2
 
 ### Objective
 
-Function that will define a tiprack associated with a pipette in an available position that does not raise a space conflict error
+A function that will define a tiprack associated with a pipette in an available position that does not raise a space conflict error
 
 This function is used in the function `check_tip_and_pick`
 
@@ -121,9 +121,9 @@ Opentrons OT-2
 ## `distribute_z_tracking_falcon15ml`
 
 ### Objective
-Function that will distribute from 1 well (15mL falcon tube) to a list of wells tracking the height of the 15mL falcon tube to avoid the pipette getting wet
+A function that will distribute from 1 well (15mL falcon tube) to a list of wells tracking the height of the 15mL falcon tube to avoid the pipette getting wet
 
-This function does not track if there is enough volume to transfer to all the wells
+This function does not track if there is enough volume to transfer to all the wells.
 
 ### Tested systems
 
@@ -176,7 +176,7 @@ Opentrons OT-2
             
             1. _pipette_used_ will distribute the _vol_distribute_well_ to the positions in _pos_final_
             2. Subtract the volume that has been distributed from the _pos_source_
-            3. Break the for loop
+            3. Break the for-loop
 
 ## `find_well_by_value`
 
@@ -185,7 +185,7 @@ Opentrons OT-2
 Given a table or a set of tables, a set value will be searched in them. In case that value is in the given tables, the value of the well
 of the labware where that value will be returned.
 
-Otherwise, if it is not in the table(s) or is repeated within the table, an exception will be raised.
+Otherwise, an exception will be raised if it is not in the table(s) or is repeated within the table.
 
 ### Tested systems
 
@@ -202,7 +202,7 @@ Opentrons OT-2
 		J23106-RBS_STD-LacI-rpoC-g2
 2. **possible_labware** (_dict_): a dictionary where every value is a dictionary containing a data frame corresponding to the values where _value_ will be searched and the labware associated with that data frame.
 
-    The dataframe containing the different values should be under the key "Map Names" and the labware associated under the "Opentrons Place" key. In addition, the dictionary's values should have a third item with the key "Label" to recognize the item in case of the _value_ being more than once in a specific data frame.
+    The data frame containing the different values should be under the "Map Names" key, and the labware associated under the "Opentrons Place" key. In addition, the dictionary's values should have a third item with the key "Label" to recognize the item in case the _value_ is more than once in a specific data frame.
 
     For instance:
 		
@@ -227,11 +227,14 @@ Opentrons OT-2
     
         **> 1 element**
         1. Raise an exception
-2. Reach the end of the for loop without going through step 1.ii.**1 element**.a so raise an exception of _value_ not found
+2. Reached the end of the for loop without going through step 1.ii.**1 element**.a so raise an exception of _value_ not found
 
 ## `generate_combinations_dict`
 
 ### Objective
+
+A function that takes a specific type of data frame and converts it to a dictionary where the first column is the key, the second column will be
+in the value "acceptor", and the rest of the values of the row are in the "module" value.
 
 ### Tested systems
 
@@ -239,11 +242,34 @@ Opentrons OT-2
 
 ### Requirements
 
+* pandas package
+
 ### Input
+1 input is needed:
+1. **pd_combination** (_pandas.core.frame.DataFrame_): A pandas data frame must have at least 2 columns, the first one called "Name".
+	For instance:
+| Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
+| ---- | ---------------- | ------ | ------ | ------ |
+|Lv2-a1c1e1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-araC-B0015_E1-g2 | pLacI-RBS_BCD12-LacI-rpoC-g3 |
+|Lv2-a1d1b1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-LacI-rpoC-g2 | pLacI-RBS_BCD12-araC-B0015_E1-g3 |
+|Lv2-a2b2  |v_gA | pBad-RBS_BCD12-GFPmuy3-rpoC-g1R | pBad-RBS_BCD12-araC-B0015_E1-g2 |  |
+
 
 ### Output
 
+* A dictionary in which the keys are the values of the column 'Name' of the _pd_combination_ and the values are another dictionary with 2 keys, 'acceptor' and 'modules'.
+Each row of the _pd_combiantion_ will be one item of the dictionary.
+For instance:
+		
+		{'Lv2-a1c1e1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-araC-B0015_E1-g2', 'pLacI-RBS_BCD12-LacI-rpoC-g3']}, 'Lv2-a1d1b1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-LacI-rpoC-g2', 'pLacI-RBS_BCD12-araC-B0015_E1-g3']}, 'Lv2-a2b2': {'acceptor': 'v_gA', 'modules': ['pBad-RBS_BCD12-GFPmuy3-rpoC-g1R', 'pBad-RBS_BCD12-araC-B0015_E1-g2']}}
+
 ### Summary of functioning
+
+1. Get a list of the values of the column 'Name'
+2. With a for-loop, go through all the values of the column 'Name'
+	1. Get the elements of the row that has that name that is not a NaN value
+	2. Add to the final dictionary (_combination_dict_) the item with the value of 'Name' as a key, the first element of the elements of that row under 'acceptor' and the rest under the key 'module'
+3. Return the final dictionary _combination_dict_
 
 ## `generator_positions`
 
