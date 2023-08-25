@@ -303,17 +303,72 @@ Opentrons OT-2
 
 ### Objective
 
+A function that performs an extensive mixing with a pipette on a 1.5 mL Eppendorf located in a labware
+
 ### Tested systems
 
 Opentrons OT-2
 
 ### Requirements
 
+* `optimal_pipette_use` function
+* `check_tip_and_pick` function
+* `z_positions_mix` function
+* NotSuitablePipette custom exception (included in the file)
+
 ### Input
+5 inputs are required:
+1. **location_tube** (_opentrons.protocol_api.labware.Well_): Well that will be mixed with a pipette.
+2. **volume_tube** (_float_): Volume that the _location_tube_ contains.
+3. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette).
+
+	For example:
+
+	        class Example():
+	            def __init__ (self):
+	                self.APINameTipR = opentrons_96_tiprack_20ul
+	                self.APINameTipL = opentrons_96_tiprack_300ul
+			
+4. **program_variables** (_custom class_):  script class with attributes pipR (pipette on the right mount), pipL (pipette on the left mount) and deckPositions (Dictionary with deck positions as keys and labware/module object as the value).
+
+	For example:
+
+	        class Example():
+	            def __init__ (self):
+	                self.pipR = P20 Single-Channel GEN2 on right mount
+	                self.pipL = P300 Single-Channel GEN2 on left mount
+					self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
+
+5. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
+ * The pipette used during the mixing
+ 
 ### Summary of functioning
+1. Establish a volume that will be used to mix the _volume_tube_ of the _location_tube_
+2. Try to establish the pipette that is going to perform the movements
+	**A pipette is established**
+	1. Establish the maximum volume that the suitable pipette can aspirate
+	2. Compare the max volume of the pipette with the mix Volume
+		_Mix volume > max volume pipette_
+		1. Volume mixing is established as the max volume of the pipette
+		_Mix volume < max volume pipette_
+		1. Volume mixing stays the same
+	**NotSuitablePipette exception is raised**
+	1. Establish which pipette has the lowest minimum volume possible to aspirate
+	2. Establish that pipette as the mixing pipette
+3. Check if the mixing pipette has a tip
+	**No tip attached**
+	1. Drop the tip if the other pipette has it
+	2. Pick up a tip with the function `check_tip_and_pick`
+4. Establish the positions where the pipette is going to move to aspirate and dispense with the function `z_positions_mix`
+5. The pipette goes to the positions and aspirates and dispenses 7 times in the established mixing volume
+6. Touch all sides of the _location_tube_ in different heights and with different radius
+7. Aspirate from the first position and dispense in the last position twice
+8. Aspirate from the last position and dispense in the first position twice
+9. Blow out in the centre of the _location_tube_
+10. Return the pipette that has been used to mix the _location_tube_
 
 ## `number_tubes_needed`
 
