@@ -377,6 +377,10 @@ Opentrons OT-2
 
 ### Objective
 
+A function that will return the number of tubes needed for a reactive and how many reactions can be distributed from every tube
+	
+This function does not guarantee the lower number of tubes, but it assures that everything can be picked with the pipettes associated if the vol_reactive_per_reaction_factor can be picked with them.
+	
 ### Tested systems
 
 Opentrons OT-2
@@ -384,26 +388,73 @@ Opentrons OT-2
 ### Requirements
 
 ### Input
+3 inputs needed:
+1. **vol_reactive_per_reaction_factor** (_float_):  the volume of that reactive/reaction
+2. **number_reactions** (_integer_): Total number of reactions
+3. **vol_max_tube** (_float_): Maximum volume of the tubes
 
 ### Output
+3 outputs:
+* **number_tubes** (_integer_): final number of tubes that are needed
+* **reactions_per_tube** (_list_): list of how many reactions per tube are holding the tubes
+* **volumes_tubes** (_list_): volume of each tube
 
 ### Summary of functioning
+1. Initializing the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_
+2. While loop checking that any of the tubes have more volume than the _vol_max_tube_
+	1. Add 1 tube more
+	2. Update the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_ to add that extra tube
+3. Return the output variables
 
 ## `optimal_pipette_use`
 
 ### Objective
 
+A function that will return the optimal pipette for the given volume.
+	
+If it is a greater volume than the maximum pipette volume, it will return the pipette that will give the minimal amount of movements.
+	
+If none of the pipettes attached can pick the volume, the function will raise an error.
+
 ### Tested systems
 
 Opentrons OT-2
 
 ### Requirements
 
+* NotSuitablePipette custom exception (included in the file)
+
 ### Input
+3 inputs are needed:
+1. **aVolume** (_float_): volume that wants to be picked with the given pipettes
+2. **pipette_r** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached right pipette
+3. **pipette_l** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached left pipette
 
 ### Output
+* Pipette selected to handle the _aVolume_
+* Exception in case there is no suitable pipette for the _aVolume_
 
 ### Summary of functioning
+1. Check that there is a pipette attached
+   	**No pipette attached**
+	1. Raise an exception
+   	**1 Pipette attached**
+	1. Check the pipette attached can pick the volume
+    		_Left pipette attached and min volume is > aVolume_
+		1. Return the left pipette
+      		_Right pipette attached and min volume is > aVolume_
+		1. Return the right pipette
+    		_Pipette attached < aVolume_
+    		1. Raise an exception
+         **2 pipettes attached**
+         1. Establish which pipette has the greater minimum volume
+         2. Check if any pipette can aspirate the volume
+            	_Both pipettes can aspirate aVolume_
+		1. Return the greater minimum volume pipette
+	     	_One pipete can aspirate volume_
+		1. Return that pipette
+ 		_None of the pipettes can aspirate volume_
+		1. Raise an exception
 
 ## `position_dispense_aspirate_falcon15ml`
 
