@@ -472,6 +472,10 @@ Opentrons OT-2
 
 ### Objective
 
+A function that will return the height that the pipette should aspirate the volume without getting wet
+
+The heights are measured manually.
+
 ### Tested systems
 
 Opentrons OT-2
@@ -479,10 +483,17 @@ Opentrons OT-2
 ### Requirements
 
 ### Input
+2 inputs are needed:
+1. **vol_falcon** (_float_): Volume that the tube in the _theory_position_ has
+2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that is going to check and return the position to
 
 ### Output
 
+* **final_position** (_opentrons.protocol_api.labware.Well_): Tube with the height position that the pipette is going to aspirate or dispense from given the _vol_faalcon_
+
 ### Summary of functioning
+1. Check the volume that was given in _vol_falcon_
+2. Assign the height measured for that volume
 
 ## `run_program_thermocycler`
 
