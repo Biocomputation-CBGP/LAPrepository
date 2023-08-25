@@ -437,9 +437,11 @@ Opentrons OT-2
 
 ### Summary of functioning
 1. Check that there is a pipette attached
+
    	**No pipette attached**
 	1. Raise an exception
-   	**1 Pipette attached**
+
+    	**1 Pipette attached**
 	1. Check the pipette attached can pick the volume
     		_Left pipette attached and min volume is > aVolume_
 		1. Return the left pipette
@@ -447,6 +449,7 @@ Opentrons OT-2
 		1. Return the right pipette
     		_Pipette attached < aVolume_
     		1. Raise an exception
+
          **2 pipettes attached**
          1. Establish which pipette has the greater minimum volume
          2. Check if any pipette can aspirate the volume
