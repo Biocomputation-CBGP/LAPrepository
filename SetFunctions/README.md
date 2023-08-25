@@ -352,9 +352,11 @@ Opentrons OT-2
  	**A pipette is established**
 	1. Establish the maximum volume that the suitable pipette can aspirate
 	2. Compare the max volume of the pipette with the mix Volume
-		_Mix volume > max volume pipette_
+		
+  		_Mix volume > max volume pipette_
 		1. Volume mixing is established as the max volume of the pipette
-		_Mix volume < max volume pipette_
+		
+  		_Mix volume < max volume pipette_
 		1. Volume mixing stays the same
 	
  	**NotSuitablePipette exception is raised**
