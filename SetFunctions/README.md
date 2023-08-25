@@ -182,10 +182,10 @@ Opentrons OT-2
 
 ### Objective
 
-Given a table or a set of tables, a set value will be searcched in them. In case that that value is in the given tables, the value of the well
-of the laware where that value is will be return.
+Given a table or a set of tables, a set value will be searched in them. In case that value is in the given tables, the value of the well
+of the labware where that value will be returned.
 
-Otherwise, if it is not in the table(s) or is repetead within the table, an exception will be risen.
+Otherwise, if it is not in the table(s) or is repeated within the table, an exception will be raised.
 
 ### Tested systems
 
@@ -200,9 +200,9 @@ Opentrons OT-2
 1. **value** (_string_): Value that will be searched in the given tables. For example:
 		
 		J23106-RBS_STD-LacI-rpoC-g2
-2. **possible_labware** (_dict_): a dictionary where every value is a dictionary containing a dataframe that will correspond to the values where _value_ will be searched and the labware associated to that dataframe.
+2. **possible_labware** (_dict_): a dictionary where every value is a dictionary containing a data frame corresponding to the values where _value_ will be searched and the labware associated with that data frame.
 
-    The dataframe that contains the different values should be under the key "Map Names" and the labware associated under the key "Opentrons Place". In addition, the values of the dictionary should have a third item with the key "Label" to be able to recognize the item in case of the _value_ being more than once in a specific dataframe
+    The dataframe containing the different values should be under the key "Map Names" and the labware associated under the "Opentrons Place" key. In addition, the dictionary's values should have a third item with the key "Label" to recognize the item in case of the _value_ being more than once in a specific data frame.
 
     For instance:
 		
@@ -210,14 +210,14 @@ Opentrons OT-2
 
 ### Output
 
-* A class 'opentrons.protocol_api.labware.Well' corresponding to the well of the labware that the _value_ is in the dataframe
-* An exception in case the _value_ is not in the set of dataframes or is more tan 1 time in a datframe
+* A class 'opentrons.protocol_api.labware.Well' corresponding to the well of the labware that the _value_ is in the data frame
+* An exception in case the _value_ is not in the set of data frames or is more than 1 time in a data frame
 
 ### Summary of functioning
 
 1. For loop through the values in _possible_labwares_
-    1. Obtain the values of all the cells that have _value_. We will obtain a <class 'pandas.core.indexes.multi.MultiIndex'> when every element is a tuple with the name of the index and name of the value as first and second element, respectively.
-    2. Check how many elements the multi index object has
+    1. Obtain the values of all cells with _value_. We will obtain a <class 'pandas.core.indexes.multi.MultiIndex'> when every element is a tuple with the index's name and the value's name as the first and second element, respectively.
+    2. Check how many elements the multi-index object has
     
         **0 element**
         1. Continue to the next element of _possible_labwares_
@@ -227,7 +227,7 @@ Opentrons OT-2
     
         **> 1 element**
         1. Raise an exception
-2. Reach the end of for the loop without going though step 1.ii.**1 element**.a so raise an exception of _value_ not found
+2. Reach the end of the for loop without going through step 1.ii.**1 element**.a so raise an exception of _value_ not found
 
 ## `generate_combinations_dict`
 
