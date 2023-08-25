@@ -254,7 +254,6 @@ Opentrons OT-2
 |Lv2-a1d1b1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-LacI-rpoC-g2 | pLacI-RBS_BCD12-araC-B0015_E1-g3 |
 |Lv2-a2b2  |v_gA | pBad-RBS_BCD12-GFPmuy3-rpoC-g1R | pBad-RBS_BCD12-araC-B0015_E1-g2 |  |
 
-
 ### Output
 
 * A dictionary in which the keys are the values of the column 'Name' of the _pd_combination_ and the values are another dictionary with 2 keys, 'acceptor' and 'modules'.
@@ -275,6 +274,8 @@ For instance:
 
 ### Objective
 
+Generator of the positions given in a list that will be given one by one when the function is called
+
 ### Tested systems
 
 Opentrons OT-2
@@ -283,9 +284,17 @@ Opentrons OT-2
 
 ### Input
 
+1 input is needed:
+1. **labware_wells_name** (_list_): list of positions 
+
 ### Output
 
+* The next element of the _labware_wells_name_
+
 ### Summary of functioning
+
+1. For-loop of the elements in the _labware_wells_name_ list
+	1. Yield the element of the list
 
 ## `mixing_eppendorf_15`
 
