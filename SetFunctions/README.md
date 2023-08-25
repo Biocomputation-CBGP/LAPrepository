@@ -29,7 +29,7 @@ Opentrons OT-2
 2. **position\_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value. For example:
 
         {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables\_define\_tiprack** (_class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette). For example:
+3. **variables\_define\_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette). For example:
 
         class Example():
             def __init__ (self):
@@ -90,7 +90,7 @@ Opentrons OT-2
 2. **position_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value. For example:
 
         {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables_define_tiprack** (_class_): script class with attributes APINameTipR (name of the tiprack associated with right mount pipette) and APINameTipL (name of the tiprack associated with left mount pipette). For example:
+3. **variables_define_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with right mount pipette) and APINameTipL (name of the tiprack associated with left mount pipette). For example:
 
         class Example():
             def __init__ (self):
@@ -141,7 +141,7 @@ Opentrons OT-2
 2. **vol_source** (_float_): Initial volume of the _pos_source_. For example:
 
         10000
-3. **vol_distribute_well** (float): Volume distributed to the _pos_final_. For example:
+3. **vol_distribute_well** (_float_): Volume distributed to the _pos_final_. For example:
 
         15
 4. **pos_source** (_opentrons.protocol_api.labware.Well_): Falcon containing the liquid will be distributed to the _pos_final_ wells. For example:
@@ -182,17 +182,52 @@ Opentrons OT-2
 
 ### Objective
 
+Given a table or a set of tables, a set value will be searcched in them. In case that that value is in the given tables, the value of the well
+of the laware where that value is will be return.
+
+Otherwise, if it is not in the table(s) or is repetead within the table, an exception will be risen.
+
 ### Tested systems
 
 Opentrons OT-2
 
 ### Requirements
 
+
 ### Input
+2 inputs are required:
+
+1. **value** (_string_): Value that will be searched in the given tables. For example:
+		
+		J23106-RBS_STD-LacI-rpoC-g2
+2. **possible_labware** (_dict_): a dictionary where every value is a dictionary containing a dataframe that will correspond to the values where _value_ will be searched and the labware associated to that dataframe.
+
+    The dataframe that contains the different values should be under the key "Map Names" and the labware associated under the key "Opentrons Place". In addition, the values of the dictionary should have a third item with the key "Label" to be able to recognize the item in case of the _value_ being more than once in a specific dataframe
+
+    For instance:
+		
+		{1:{"Map Names":<class 'pandas.core.frame.DataFrame'>, "Opentrons Place":<class 'opentrons.protocol_api.labware.Labware'>, "Label":"abc"}, 2:{"Map Names":<class 'pandas.core.frame.DataFrame'>, "Opentrons Place":<class 'opentrons.protocol_api.labware.Labware'>, "Label":2}}
 
 ### Output
 
+* A class 'opentrons.protocol_api.labware.Well' corresponding to the well of the labware that the _value_ is in the dataframe
+* An exception in case the _value_ is not in the set of dataframes or is more tan 1 time in a datframe
+
 ### Summary of functioning
+
+1. For loop through the values in _possible_labwares_
+    1. Obtain the values of all the cells that have _value_. We will obtain a <class 'pandas.core.indexes.multi.MultiIndex'> when every element is a tuple with the name of the index and name of the value as first and second element, respectively.
+    2. Check how many elements the multi index object has
+    
+        **0 element**
+        1. Continue to the next element of _possible_labwares_
+    
+        **1 element**
+        1. Return the well of the labware where the value has been found
+    
+        **> 1 element**
+        1. Raise an exception
+2. Reach the end of for the loop without going though step 1.ii.**1 element**.a so raise an exception of _value_ not found
 
 ## `generate_combinations_dict`
 
