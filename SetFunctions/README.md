@@ -248,6 +248,7 @@ Opentrons OT-2
 1 input is needed:
 1. **pd_combination** (_pandas.core.frame.DataFrame_): A pandas data frame must have at least 2 columns, the first one called "Name".
 	For instance:
+
 | Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
 | ---- | ---------------- | ------ | ------ | ------ |
 |Lv2-a1c1e1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-araC-B0015_E1-g2 | pLacI-RBS_BCD12-LacI-rpoC-g3 |
