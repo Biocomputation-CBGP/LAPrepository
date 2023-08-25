@@ -324,20 +324,20 @@ Opentrons OT-2
 
 	For example:
 
-	  class Example():
-	  	def __init__ (self):
-	        	self.APINameTipR = opentrons_96_tiprack_20ul
-	                self.APINameTipL = opentrons_96_tiprack_300ul
-			
+		class Example():
+		  	def __init__ (self):
+		        	self.APINameTipR = opentrons_96_tiprack_20ul
+		                self.APINameTipL = opentrons_96_tiprack_300ul
+				
 4. **program_variables** (_custom class_):  script class with attributes pipR (pipette on the right mount), pipL (pipette on the left mount) and deckPositions (Dictionary with deck positions as keys and labware/module object as the value).
 
 	For example:
 
-	  class Example():
-	  	def __init__ (self):
-	  		self.pipR = P20 Single-Channel GEN2 on right mount
-	                self.pipL = P300 Single-Channel GEN2 on left mount
-			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
+		class Example():
+		  	def __init__ (self):
+		  		self.pipR = P20 Single-Channel GEN2 on right mount
+		                self.pipL = P300 Single-Channel GEN2 on left mount
+				self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
 
 5. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
