@@ -1,9 +1,8 @@
 def setting_labware (number_labware, labware_name, positions, protocol, label = None):
 	"""
-	In this function we will set how many labwares we need of every category (source labwares, final, coldblocks, falcon tube racks, etc)
+	In this function, we will set how much labware we need for every category (source labware, final, cold blocks, falcon tube racks, etc)
 	
-	This function will only set the labwares in the different slots of the deck, with not calculate how many we need,
-	this way we do not have to change this function and only change the setting_labware function from protocol to protocol
+	This function will only set the labwares in the different slots of the deck, not calculate how many we need.
 	"""
 	position_plates = [position for position, labware in positions.items() if labware == None] # We obtain the positions in which there are not labwares
 	all_plates = {}
