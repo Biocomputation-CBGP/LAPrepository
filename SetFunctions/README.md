@@ -499,6 +499,8 @@ Opentrons OT-2
 
 ### Objective
 
+A function that will read a table consisting of 4 columns: Temperature, Time (s), Number of Cycle and Cycle Status and will perform a temperature profile in an Opentrons thermocycler module.
+
 ### Tested systems
 
 Opentrons OT-2
@@ -506,8 +508,19 @@ Opentrons OT-2
 ### Requirements
 
 ### Input
-
+5 inputs are needed
+tc_mod, program, lid_temperature, final_lid_state, final_block_state, volume_sample, protocol
+1. **tc_mod** (_opentrons.protocol_api.module_contexts.ThermocyclerContext_):
+2. **program** (_pandas.core.frame.DataFrame_):
+3. **lid_temperature** (_float_):
+4. **final_lid_state** (_boolean_):
+5. **final_block_state**(_NaN|float_):
+6. **volume_sample** (_float_):
+7. **protocol**(_opentrons.protocol_api.protocol_context.ProtocolContext_):
+   
 ### Output
+
+* Performance of a temperature profile
 
 ### Summary of functioning
 
