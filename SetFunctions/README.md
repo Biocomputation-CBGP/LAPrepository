@@ -1,4 +1,4 @@
-# Function Leyend
+# Functions Legend
 This repository contains the functions used in the LAP entries of the LAP repository.
 
 Each file is one function used in at least 1 LAP entry.
@@ -508,15 +508,18 @@ Opentrons OT-2
 ### Requirements
 
 ### Input
-5 inputs are needed
-tc_mod, program, lid_temperature, final_lid_state, final_block_state, volume_sample, protocol
+7 inputs are needed
 1. **tc_mod** (_opentrons.protocol_api.module_contexts.ThermocyclerContext_):
 2. **program** (_pandas.core.frame.DataFrame_):
 3. **lid_temperature** (_float_):
-4. **final_lid_state** (_boolean_):
-5. **final_block_state**(_NaN|float_):
-6. **volume_sample** (_float_):
-7. **protocol**(_opentrons.protocol_api.protocol_context.ProtocolContext_):
+4. **final_lid_state** (_boolean_): Value that determines if the lid of the module will be open (True) or closed (False) at the end of the temperature profile. For example
+		True
+6. **final_block_state**(_NaN|float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
+For example
+		25
+7. **volume_sample** (_float_): volume of the well that contains more liquid. For example
+		20
+8. **protocol**(_opentrons.protocol_api.protocol_context.ProtocolContext_):
    
 ### Output
 
