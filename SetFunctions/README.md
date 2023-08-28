@@ -651,18 +651,58 @@ Opentrons OT-2
 
 ### Input
 8 inputs are needed
-1. **vol_transfer_reaction** (_float_)
-2. **positions_source_tubes** (__)
-3. **reactions_source_tubes** (__)
-4. **positions_final_tubes** (__)
-5. **reactions_final_tubes** (__)
-6. **program_variables** (__)
-7. **user_variables** (__)
-8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+1. **vol_transfer_reaction** (_float_): volume per reaction that needs to be transferred from _positions_source_tubes_ to _positions_final_tubes_.
+
+   For example
+   		
+   	25
+3. **positions_source_tubes** (_list of opentrons.protocol_api.labware.Well'_): List of tube(s) that are going to be the source wells of the transfer
+
+   For example:
+   		
+   	[A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2, B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2]
+5. **reactions_source_tubes** (_list of integers_): List of the reactions per tube that corresponds to the number of reactions that can be transferred to the _positions_final_tubes_
+
+   For example:
+   	
+   	[27, 27]
+7. **positions_final_tubes** (_list of opentrons.protocol_api.labware.Well_): Final destination of the transfer from _posiions_source_tubes_
+
+   For example:
+		
+		[A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
+8. **reactions_final_tubes** (_list of integers_): Number of reactions of the volume _vol_transfer_reaction_ that need to be transferred to each tube from _positions_source_tubes_
+
+   For example:
+   		
+   		[18, 18, 18]
+10. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick) and startingTipPipL (the first tip that the left pipette should pick).
+
+	For example:
+
+		class Example():
+		  	def __init__ (self):
+                self.APINameTipR = opentrons_96_tiprack_20ul
+                self.APINameTipL = opentrons_96_tiprack_300ul
+                self.startingTipPipR = "A1"
+                self.startingTipPipL = "B3"
+				
+11. **program_variables** (_custom class_):  script class with the attribute deckPositions (Dictionary with deck positions as keys and labware/module object as the value).
+
+	For example:
+
+		class Example():
+		  	def __init__ (self):
+				self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
+12. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
+* Volume transferred from a set of wells to another set of wells
+
 ### Summary of functioning
+
+1. 
 
 ## `vol_distribute_2pips`
 
