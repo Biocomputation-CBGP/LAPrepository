@@ -1,37 +1,47 @@
-def z_positions_mix (vol_mixing):
+def run_program_thermocycler (tc_mod, program, lid_temperature, final_lid_state, final_block_state, volume_sample, protocol):
 	"""
-	Function that will define the positions of mixing according to the volume of each tube of primer set
-	
-	These heights have been manually measured for 1.5mL eppendorfs to attach z to aproximatelly the volume associated
-	
-	We will have 3 mixing heights at the end, but not neccessarilly different within each other
+	Function that will read the csv file with the steps of the program and will perform it
+	in the thermocycler
+	the program is already the pd.DataFrame, because it has already been read and establish that the lid temperature is okay,
+	it exists, etc, i.e., control error of the file
 	"""
 	
-	position_bottom = 1
-	position_100 = 6
-	position_100_250 = 9
-	position_250 = 11
-	position_500 = 16
-	position_750 = 20
-	position_1000 = 25
-	position_1250 = 30
+	# initialyze the state of the variable cycle that we will use to control if the step is a cycle or a step
+	cycle = False
 	
-	#Assigned to the volume the 3 positions [min, center, max] that we are going to use in the mixing process
-	if vol_mixing <= 100: # The values of comparing are volumes (in uL)
-		return [position_bottom, position_bottom, position_bottom]
-	elif vol_mixing > 100 and vol_mixing <= 250:
-		return [position_bottom, position_100, position_100_250]
-	elif vol_mixing > 250 and vol_mixing <= 500:
-		return [position_bottom, position_100, position_250]
-	elif vol_mixing > 500 and vol_mixing <= 750:
-		return [position_100, position_250, position_500]
-	elif vol_mixing > 750 and vol_mixing <= 1000:
-		return [position_100, position_250, position_750]
-	elif vol_mixing > 1000 and vol_mixing <= 1250:
-		return [position_100, position_500, position_1000]
-	elif vol_mixing > 1250:
-		return [position_100, position_500, position_1250]
+	# set the initail temperature of the lid
+	tc_mod.set_lid_temperature(lid_temperature)
+	for row in program.iterrows():
+		# Check if it is a cycle or not, if it is a start of the end of it
+		# This will work because we have already donde contorl of the values of this column which only can be -, Start or End
+		if row[1]["Cycle Status"].lower() == "start":
+			profile_termo =[{"temperature":float(row[1]["Temperature"]),"hold_time_seconds":float(row[1]["Time (s)"])}]
+			cycle = True
+			continue
+		elif row[1]["Cycle Status"].lower() == "end":
+			profile_termo.append({"temperature":float(row[1]["Temperature"]),"hold_time_seconds":float(row[1]["Time (s)"])})
+			tc_mod.execute_profile(steps = profile_termo,
+								   repetitions = int(row[1]["Number of Cycles"]),
+								   block_max_volume = volume_sample)
+			cycle = False
+			continue
+		
+		# Now we know if we have to add a step to the cycle or do the step directly
+		if cycle == True:
+			profile_termo.append({"temperature":float(row[1]["Temperature"]),"hold_time_seconds":float(row[1]["Time (s)"])})
+		elif cycle == False:
+			tc_mod.set_block_temperature(row[1]["Temperature"],
+										 hold_time_seconds = float(row[1]["Time (s)"]),
+										 block_max_volume = volume_sample)
+	# Now we are going to put the block at one temeprature/open lid if it is establish like that
+	tc_mod.deactivate_lid()
+	
+	if final_lid_state:
+		tc_mod.open_lid()
+	
+	if pd.isna(final_block_state) == False:
+		tc_mod.set_block_temperature(final_block_state,
+									 block_max_volume = volume_sample)
 	else:
-		pass
-	
+		tc_mod.deactivate_block()
 	return
