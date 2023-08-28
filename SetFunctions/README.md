@@ -112,8 +112,10 @@ Opentrons OT-2
 4. Loop over the positions until the tiprack is defined
    1. Try to establish the tiprack. If a _DeckConflictError_ is raised, the loop will go to the free position. If not, the rest of the steps are going to be performed
    2. Check if the tipracks of the left and right pipettes are the same ones
+
       **Same tiprack**
       1. Define the same tip rack for both pipettes
+      
       **Different tipracks**
       1. Define the tip rack on the given pipette
 5. If the tiprack has not been defined after the loop, an Exception will be raised
