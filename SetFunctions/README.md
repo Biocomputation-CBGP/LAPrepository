@@ -552,10 +552,36 @@ Opentrons OT-2
 * Performance of a temperature profile
 
 ### Summary of functioning
-1. 
+1. Set lid temperature
+2. Go through all rows of the table _profile_
+   1. Check the value of the column "Cycle Status"
+      
+      **Cycle Status is Start**
+      1. Add the step to the cycle list
+      2. State the _cycle_ variable as True
+      3. Continue to the next row of the data frame
+      
+      **Cycle Status is End**
+      1. Add the step to the cycle list
+      2. Execute the cycle
+      3. State the _cycle_ variable as False
+      4. Continue to the next row of the data frame
+   2. Check if the state of the variable _cycle_
+      
+      _cycle is True_
+      1. Add the step to the cycle list
+      
+      _cycle is False_
+      1. Execute the step with set_block_temperature
+3. Deactivate the lid
+4. If _final_lid_state_ is set as True, we open the lid
+5. If _final_block_state_ is not empty, the block temperature is set as its value. If is empty, the temperature block is deactivated.
+
 ## `setting_labware`
 
 ### Objective
+
+A function that will set a determined number of the same labware in free slots. Those slots will also be determined by a variable given, and if the labware cannot be loaded in any slot, an exception will be raised.
 
 ### Tested systems
 
@@ -564,10 +590,51 @@ Opentrons OT-2
 ### Requirements
 
 ### Input
+5 inputs are required
+1. **number_labware** (_integer_): Number of slots that the labware set in _labware_name_ will be defined if possible
+2. **labware_name** (_string_): API labware name that is going to be loaded in the deck
+3. **positions** (_dict_): Dictionary with the different slot places of the deck as keys and the values of the slot as values. If they are empty slots, the values should be None. Otherwise, the name of the labware that is occupying that slot.
+
+   For example:
+   
+   	{1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
+4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+5. **label** (_None|string|list_): names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
+
+    For example:
+		
+		["Non-viscous reagents", "Viscous reagents"]
 
 ### Output
+* **all_plates** (_dictionary_): Dictionary with the selected position as a key and the labware name defined as a value.
+
+  For example:
+
+  		{3: biorad_96_wellplate_200ul_pcr}
 
 ### Summary of functioning
+1. Set the items of _positions_ that have None as a value in a variable called _position_plates_
+2. For loop through the number of _number_labware_ established
+   1. The variable _labware_set_ is set as False
+   2. Go through the _position_plates_
+      1. Try to establish the labware with the set _label_
+         
+         **Successful load labware**
+	     1. Load labware with _label_
+     	 2. Add the labware and the position to the final output, _all_plates_
+         3.  Set _labware_set_ as True
+         4.  Break the for loop
+	     
+	     **DeckConflictError**
+	     1. Continue to the next available position of _position_plates_
+   3. Check if the variable _labware_set_ was established as True in the for loop
+     
+         _labware_set as false_
+         1. Raise an exception
+     
+         _labware_set as true_
+         1. Remove the position where the labware was established from _position_plates_
+3. Return the list _all_plates_ with the positions as keys and the labware as values
 
 ## `tube_to_tube_transfer`
 
