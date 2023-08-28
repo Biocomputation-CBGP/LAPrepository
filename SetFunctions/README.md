@@ -597,7 +597,7 @@ Opentrons OT-2
 
    For example:
    
-   	{1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
+   		{1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
 4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 5. **label** (_None|string|list_): names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
 
