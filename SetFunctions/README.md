@@ -512,13 +512,14 @@ Opentrons OT-2
 1. **tc_mod** (_opentrons.protocol_api.module_contexts.ThermocyclerContext_)
 2. **program** (_pandas.core.frame.DataFrame_): Dataframe with 4 columns determining the steps and cycles the temperature profile will perform. Every row is a step of the profile.
    These are the columns:
-	1. Temperature (_float_): The temperature, in centigrades, of this specific step
-	2. Time (s) (_float_): The time, in seconds, that this specific step
-    	3. Number of cycles (_-|integer_): If the step is part of a cycle and the value of the column "Cycle Status" is set as _End_, this represents the number of times the cycle will be performed. Otherwise, this column should have a hyphen as a value.
-        4. Cycle Status (_Start|End|-_): Variable that states which part of a cycle this step corresponds to. If the step is not the start or end of the cycle, it should have a hyphen as a value. Also, if the step is not inside a cycle, it should be filled with a hyphen.
-           If the step is the first one of a cycle, this column should be filled with the value _Start_. If it is the last step of a cycle, the value should be _End_.
+   1. Temperature (_float_): The temperature, in centigrades, of this specific step
+   2. Time (s) (_float_): The time, in seconds, that this specific step
+   3. Number of cycles (_-|integer_): If the step is part of a cycle and the value of the column "Cycle Status" is set as _End_, this represents the number of times the cycle will be performed. Otherwise, this column should have a hyphen as a value.
+   4. Cycle Status (_Start|End|-_): Variable that states which part of a cycle this step corresponds to. If the step is not the start or end of the cycle, it should have a hyphen as a value. Also, if the step is not inside a cycle, it should be filled with a hyphen.
+      If the step is the first one of a cycle, this column should be filled with the value _Start_. If it is the last step of a cycle, the value should be _End_.
   For example:
 | Temperature | Time (s) | Number of cycles | Cycle status |
+| ----------- | -------- | ---------------- | ------------ |
 | 98 | 300 | - | - |
 | 98 | 10 | - | Start |
 | 30 | 30 | - | - |
