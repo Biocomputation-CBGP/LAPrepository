@@ -640,13 +640,25 @@ Opentrons OT-2
 
 ### Objective
 
+A function destined to transfer a volume from 1 or more tubes with a volume associated with a set number of reactions to another tube or set of tubes with another set of reaction numbers
+
 ### Tested systems
 
 Opentrons OT-2
 
 ### Requirements
+* `check_tip_and_pick` function
 
 ### Input
+8 inputs are needed
+1. **vol_transfer_reaction** (_float_)
+2. **positions_source_tubes** (__)
+3. **reactions_source_tubes** (__)
+4. **positions_final_tubes** (__)
+5. **reactions_final_tubes** (__)
+6. **program_variables** (__)
+7. **user_variables** (__)
+8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
