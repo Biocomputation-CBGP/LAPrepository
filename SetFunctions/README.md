@@ -518,32 +518,35 @@ Opentrons OT-2
    4. Cycle Status (_Start|End|-_): Variable that states which part of a cycle this step corresponds to. If the step is not the start or end of the cycle, it should have a hyphen as a value. Also, if the step is not inside a cycle, it should be filled with a hyphen.
       If the step is the first one of a cycle, this column should be filled with the value _Start_. If it is the last step of a cycle, the value should be _End_.
 
- For example:
+      For example:
 
-| Temperature | Time (s) | Number of cycles | Cycle status |
-| ----------- | -------- | ---------------- | ------------ |
-| 98 | 300 | - | - |
-| 98 | 10 | - | Start |
-| 30 | 30 | - | - |
-| 72 | 90 | 6 | End |
-| 98 | 10 | - | Start |
-| 45 | 30 | - | - |
-| 99 | 90 | 30 | End |
-| 72 | 300 | - | - |
+        | Temperature | Time (s) | Number of cycles | Cycle status |
+        | ----------- | -------- | ---------------- | ------------ |
+        | 98 | 300 | - | - |
+        | 98 | 10 | - | Start |
+        | 30 | 30 | - | - |
+        | 72 | 90 | 6 | End |
+        | 98 | 10 | - | Start |
+        | 45 | 30 | - | - |
+        | 99 | 90 | 30 | End |
+        | 72 | 300 | - | - |
 4. **lid_temperature** (_float_): Value that will determine the value of the lid temperature during all the temperature profile. For example:
 		
-  	100
+  	    100
 5. **final_lid_state** (_boolean_): Value that determines if the lid of the module will be open (True) or closed (False) at the end of the temperature profile. For example
-		True
+	    
+	    	True
 6. **final_block_state**(_NaN|float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
 
-For example
-		25
-7. **volume_sample** (_float_): volume of the well that contains more liquid. For example
+   For example
 		
-  	20
-8. **protocol**(_opentrons.protocol_api.protocol_context.ProtocolContext_):
+		25
+7. **volume_sample** (_float_): volume of the well that contains more liquid.
    
+   For example
+		
+  	    20
+8. **protocol**(_opentrons.protocol_api.protocol_context.ProtocolContext_)
 ### Output
 
 * Performance of a temperature profile
