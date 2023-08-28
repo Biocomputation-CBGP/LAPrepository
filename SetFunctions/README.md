@@ -657,17 +657,17 @@ Opentrons OT-2
 
    For example
    		
-   	25
+   		25
 3. **positions_source_tubes** (_list of opentrons.protocol_api.labware.Well'_): List of tube(s) that are going to be the source wells of the transfer
 
    For example:
    		
-   	[A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2, B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2]
+   		[A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2, B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2]
 5. **reactions_source_tubes** (_list of integers_): List of the reactions per tube that corresponds to the number of reactions that can be transferred to the _positions_final_tubes_
 
    For example:
    	
-   	[27, 27]
+   		[27, 27]
 7. **positions_final_tubes** (_list of opentrons.protocol_api.labware.Well_): Final destination of the transfer from _posiions_source_tubes_
 
    For example:
