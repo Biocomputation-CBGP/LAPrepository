@@ -771,7 +771,7 @@ Opentrons OT-2
 
    For example:
 		
-		[A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
+	[A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
 8. **reactions_final_tubes** (_list of integers_): Number of reactions of the volume _vol_transfer_reaction_ that need to be transferred to each tube from _positions_source_tubes_
 
    For example:
@@ -779,22 +779,22 @@ Opentrons OT-2
        [18, 18, 18]
 10. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick) and startingTipPipL (the first tip that the left pipette should pick).
 
-	For example:
+   For example:
 
-	    class Example():
-		  	def __init__ (self):
-                self.APINameTipR = opentrons_96_tiprack_20ul
-                self.APINameTipL = opentrons_96_tiprack_300ul
-                self.startingTipPipR = "A1"
-                self.startingTipPipL = "B3"
+	class Example():
+	  	def __init__ (self):
+        	        self.APINameTipR = opentrons_96_tiprack_20ul
+                	self.APINameTipL = opentrons_96_tiprack_300ul
+                	self.startingTipPipR = "A1"
+                	self.startingTipPipL = "B3"
 				
 11. **program_variables** (_custom class_):  script class with the attribute deckPositions (Dictionary with deck positions as keys and labware/module object as the value).
 
-	For example:
+   For example:
 
-		class Example():
-		  	def __init__ (self):
-				self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
+	class Example():
+		  def __init__ (self):
+			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
 12. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
@@ -840,17 +840,43 @@ Opentrons OT-2
 ## `vol_distribute_2pips`
 
 ### Objective
+A function with a set of 2 pipettes and a list of volumes will return the positions and volumes of the elements that each pipette should transfer or distribute
 
 ### Tested systems
 
 Opentrons OT-2
 
 ### Requirements
-
+* `optimal_pipette_use` function
 ### Input
+volumes_distribute, positions_distribute, pip_r, pip_l
+4 inputs are needed:
+1. **volumes_distribute** (_list_): list of volumes to distribute, one element of the list per well.
+
+   For example:
+
+       [5, 25, 10]  
+3. **positions_distribute** (_list_): list of wells that the volumes of _volumes_distribute_ are going to be associated. they need to be in the same order.
+
+   For example:
+
+       [A1 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 1, A2 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 1, A3 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 1]
+5. **pip_r** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached right pipette
+
+   For example:
+       
+       P20 Single-Channel GEN2 on right mount
+6. **pip_l** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached left pipette
+
+   For example:
+   
+       P300 Single-Channel GEN2 on left mount
 
 ### Output
-
+* **** (_list_)
+* **** (_list_)
+* **** (_list_)
+* **** (_list_)
 ### Summary of functioning
 
 ## `wells_selection`
