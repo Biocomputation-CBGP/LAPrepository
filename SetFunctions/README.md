@@ -561,7 +561,7 @@ Opentrons OT-2
    For example:
    
        1000
-2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that is going to check and return the position of.
+2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that will be used to establish at which height the pipette should aspirate or dispense.
 
    For example:
    
@@ -689,7 +689,7 @@ Opentrons OT-2
    For example:
        
        2
-2. **labware_name** (_string_): API labware name that is going to be loaded in the deck.
+2. **labware_name** (_string_): API labware name that will be loaded in the deck.
    
    For example:
    
@@ -803,7 +803,39 @@ Opentrons OT-2
 
 ### Summary of functioning
 
-1. 
+1. Initialize a pipette
+2. Loop through the _positions_final_tube_
+   1. While looping until the reactions of the tube are 0
+      1. Check if all the volume of the reactions in the tube can be transferred from the current tube of _positions_source_tube_
+         
+         **It can be transferred**
+         1. Calculate the volume to transfer
+         2. Take the number of reactions we are going to transfer from the source tube in its corresponding element of _reactions_source_tubes_
+         3. Set the number of reactions of the tube from _positions_final_tube_ as 0
+	 
+	     **It CANNOT be transferred**
+    	 1. Calculate the volume that is going to be transferred
+         2. Subtract the number of reactions in the source tube from the _reactions_final_tubes_ element corresponding to the final tube
+         3. Set the reactions of the _positions_final_tube_ element as 0
+   2. Set the optimal pipette for the volume that is going to be transferred
+   3. Check if the optimal pipette is the same as the pipette that was used last time and if they have a tip attached
+
+      _The optimal pipette and last pipette do not match, and the last pipette has a tip_
+      1. Last used pipette drop tip
+      2. Set the optimal pipette as the last pipette
+      3. Last pipette pick up tip with the function `check_tip_and_pick`
+      
+      _The optimal pipette and last pipette do not match, and the last pipette does not have a tip_
+      1. Set optimal pipette as last pipette
+      2. Last pipette pick up tip with the function `check_tip_and_pick`
+      
+      _The optimal pipette is the same as the last pipette, and it has a tip_
+      1. pass
+      
+      _The optimal pipette is the same as the last pipette, and it does not have a tip_
+      1. The optimal pipette pick up tip with the function `check_tip_and_pick`
+   5. Transfer the volume
+   6. If the source tube element in _reactions_source_tubes_ is 0, we set the source tube as the next element of _positions_source_tubes_
 
 ## `vol_distribute_2pips`
 
