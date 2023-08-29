@@ -23,23 +23,29 @@ Opentrons OT-2
 	
 ### Input
 4 Inputs required:
-1. **pipette\_used** (_opentrons.protocol_api.instrument_context.InstrumentContext_): For example:
+1. **pipette\_used** (_opentrons.protocol_api.instrument_context.InstrumentContext_):
+
+   For example:
         
         P20 Single-Channel GEN2 on right mount object
-2. **position\_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value. For example:
+2. **position\_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value.
 
-        {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables\_define\_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette). For example:
+   For example:
 
-        class Example():
+       {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
+3. **variables\_define\_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette). 
+
+   For example:
+
+       class Example():
             def __init__ (self):
                 self.APINameTipR = opentrons_96_tiprack_20ul
                 self.APINameTipL = opentrons_96_tiprack_300ul
 4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 	 
 ### Output
-* The dictionary _position_deck_ will be updated to have the new tiprack
-* The provided pipette will pick up a tip
+* The dictionary _position_deck_ will be updated to have the new tiprack.
+* The provided pipette will pick up a tip if a tip rack has been set.
 	
 ### Summary of functioning
 1. Pick a tip with the _pipette\_used_ category. If that raises an OutTipError, steps 2 and 3 will be performed. If not, it will exit the function
@@ -84,15 +90,21 @@ Opentrons OT-2
 
 ### Input
 4 Inputs required:
-1. **pipette** (_opentrons.protocol_api.instrument_context.InstrumentContext_): For example:
+1. **pipette** (_opentrons.protocol_api.instrument_context.InstrumentContext_):
+       
+   For example:
         
-        P20 Single-Channel GEN2 on right mount object
-2. **position_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value. For example:
+       P20 Single-Channel GEN2 on right mount object
+2. **position_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value.
+   
+   For example:
 
-        {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables_define_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with right mount pipette) and APINameTipL (name of the tiprack associated with left mount pipette). For example:
+       {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
+3. **variables_define_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with right mount pipette) and APINameTipL (name of the tiprack associated with left mount pipette).
 
-        class Example():
+    For example:
+    
+       class Example():
             def __init__ (self):
                 self.APINameTipR = opentrons_96_tiprack_20ul
                 self.APINameTipL = opentrons_96_tiprack_300ul
@@ -100,9 +112,11 @@ Opentrons OT-2
 
 ### Output
 
-* Dictionary with the selected position as a key and the tiprack defined as a value. For example:
+* Dictionary with the selected position as a key and the tiprack defined as a value.
 
-  		{3: opentrons_96_tiprack_300ul}
+    For example:
+
+      {3: opentrons_96_tiprack_300ul}
 
 ### Summary of functioning
 
@@ -110,6 +124,7 @@ Opentrons OT-2
 2. Define which tiprack is the one associated with the given _pipette_ variable
 3. Check that the deck has any position left. If not, an Exception is raised
 4. Loop over the positions until the tiprack is defined
+
    1. Try to establish the tiprack. If a _DeckConflictError_ is raised, the loop will go to the free position. If not, the rest of the steps are going to be performed
    2. Check if the tipracks of the left and right pipettes are the same ones
 
@@ -137,21 +152,29 @@ Opentrons OT-2
 
 ### Input
 5 Inputs required:
-1. **pipette_used** (_opentrons.protocol_api.instrument_context.InstrumentContext_): Pipette that will distribute or transfer the _vol_distribute_well_ to the _pos_final_. For example:
+1. **pipette_used** (_opentrons.protocol_api.instrument_context.InstrumentContext_): Pipette that will distribute or transfer the _vol_distribute_well_ to the _pos_final_.
+
+   For example:
         
         P20 Single-Channel GEN2 on right mount object
 2. **vol_source** (_float_): Initial volume of the _pos_source_. For example:
 
-        10000
-3. **vol_distribute_well** (_float_): Volume distributed to the _pos_final_. For example:
+       10000
+3. **vol_distribute_well** (_float_): Volume distributed to the _pos_final_.
 
-        15
-4. **pos_source** (_opentrons.protocol_api.labware.Well_): Falcon containing the liquid will be distributed to the _pos_final_ wells. For example:
+   For example:
 
-        A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1
-5. **pos_final** (_list_): list of positions that the _pipette_used_ will distribute the volume set in _vol_distribute_well_. For example:
+       15
+4. **pos_source** (_opentrons.protocol_api.labware.Well_): Falcon containing the liquid will be distributed to the _pos_final_ wells.
 
-        [A1 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A2 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A3 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2]
+   For example:
+
+       A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1
+5. **pos_final** (_list_): list of positions that the _pipette_used_ will distribute the volume set in _vol_distribute_well_.
+
+   For example:
+
+       [A1 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A2 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A3 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2]
 
 ### Output
 * Wells established in _pos_final_ with _vol_distribute_well_ uL volume in them
@@ -199,26 +222,28 @@ Opentrons OT-2
 ### Input
 2 inputs are required:
 
-1. **value** (_string_): Value that will be searched in the given tables. For example:
+1. **value** (_string_): Value that will be searched in the given tables.
+
+   For example:
 		
-		J23106-RBS_STD-LacI-rpoC-g2
+	   J23106-RBS_STD-LacI-rpoC-g2
 2. **possible_labware** (_dict_): a dictionary where every value is a dictionary containing a data frame corresponding to the values where _value_ will be searched and the labware associated with that data frame.
 
     The data frame containing the different values should be under the "Map Names" key, and the labware associated under the "Opentrons Place" key. In addition, the dictionary's values should have a third item with the key "Label" to recognize the item in case the _value_ is more than once in a specific data frame.
 
     For instance:
 		
-		{1:{"Map Names":<class 'pandas.core.frame.DataFrame'>, "Opentrons Place":<class 'opentrons.protocol_api.labware.Labware'>, "Label":"abc"}, 2:{"Map Names":<class 'pandas.core.frame.DataFrame'>, "Opentrons Place":<class 'opentrons.protocol_api.labware.Labware'>, "Label":2}}
+	   {1:{"Map Names":<class 'pandas.core.frame.DataFrame'>, "Opentrons Place":<class 'opentrons.protocol_api.labware.Labware'>, "Label":"abc"}, 2:{"Map Names":<class 'pandas.core.frame.DataFrame'>, "Opentrons Place":<class 'opentrons.protocol_api.labware.Labware'>, "Label":2}}
 
 ### Output
 
-* A class 'opentrons.protocol_api.labware.Well' corresponding to the well of the labware that the _value_ is in the data frame
+* An object from the class 'opentrons.protocol_api.labware.Well' corresponding to the well of the labware that the _value_ is in the data frame
 * An exception in case the _value_ is not in the set of data frames or is more than 1 time in a data frame
 
 ### Summary of functioning
 
 1. For loop through the values in _possible_labwares_
-    1. Obtain the values of all cells with _value_. We will obtain a <class 'pandas.core.indexes.multi.MultiIndex'> when every element is a tuple with the index's name and the value's name as the first and second element, respectively.
+    1. Obtain the values of all cells with _value_. We will obtain a 'pandas.core.indexes.multi.MultiIndex' where every element is a tuple containing the dataframe cells where the value has been found. The first element of that touple will be the index of the cell and the second one the name of the column.
     2. Check how many elements the multi-index object has
     
         **0 element**
@@ -252,11 +277,11 @@ Opentrons OT-2
 	
  	For instance:
 
-| Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
-| ---- | ---------------- | ------ | ------ | ------ |
-|Lv2-a1c1e1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-araC-B0015_E1-g2 | pLacI-RBS_BCD12-LacI-rpoC-g3 |
-|Lv2-a1d1b1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-LacI-rpoC-g2 | pLacI-RBS_BCD12-araC-B0015_E1-g3 |
-|Lv2-a2b2  |v_gA | pBad-RBS_BCD12-GFPmuy3-rpoC-g1R | pBad-RBS_BCD12-araC-B0015_E1-g2 |  |
+    | Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
+    | ---- | ---------------- | ------ | ------ | ------ |
+    |Lv2-a1c1e1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-araC-B0015_E1-g2 | pLacI-RBS_BCD12-LacI-rpoC-g3 |
+    |Lv2-a1d1b1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-LacI-rpoC-g2 | pLacI-RBS_BCD12-araC-B0015_E1-g3 |
+    |Lv2-a2b2  |v_gA | pBad-RBS_BCD12-GFPmuy3-rpoC-g1R | pBad-RBS_BCD12-araC-B0015_E1-g2 |  |
 
 ### Output
 
@@ -265,7 +290,7 @@ Each row of the _pd_combiantion_ will be one item of the dictionary.
 
 	For instance:
 		
-		{'Lv2-a1c1e1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-araC-B0015_E1-g2', 'pLacI-RBS_BCD12-LacI-rpoC-g3']}, 'Lv2-a1d1b1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-LacI-rpoC-g2', 'pLacI-RBS_BCD12-araC-B0015_E1-g3']}, 'Lv2-a2b2': {'acceptor': 'v_gA', 'modules': ['pBad-RBS_BCD12-GFPmuy3-rpoC-g1R', 'pBad-RBS_BCD12-araC-B0015_E1-g2']}}
+	   {'Lv2-a1c1e1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-araC-B0015_E1-g2', 'pLacI-RBS_BCD12-LacI-rpoC-g3']}, 'Lv2-a1d1b1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-LacI-rpoC-g2', 'pLacI-RBS_BCD12-araC-B0015_E1-g3']}, 'Lv2-a2b2': {'acceptor': 'v_gA', 'modules': ['pBad-RBS_BCD12-GFPmuy3-rpoC-g1R', 'pBad-RBS_BCD12-araC-B0015_E1-g2']}}
 
 ### Summary of functioning
 
@@ -290,7 +315,11 @@ Opentrons OT-2
 ### Input
 
 1 input is needed:
-1. **labware_wells_name** (_list_): list of positions 
+1. **labware_wells_name** (_list_): list of positions.
+
+   For example:
+      
+       [A1 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A2 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A3 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2]
 
 ### Output
 
@@ -321,24 +350,32 @@ Opentrons OT-2
 ### Input
 5 inputs are required:
 1. **location_tube** (_opentrons.protocol_api.labware.Well_): Well that will be mixed with a pipette.
+
+   For example:
+      
+       B3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 3
 2. **volume_tube** (_float_): Volume that the _location_tube_ contains.
+
+   For example:
+      
+       1200
 3. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette).
 
 	For example:
 
-		class Example():
-		  	def __init__ (self):
-		        	self.APINameTipR = opentrons_96_tiprack_20ul
-		                self.APINameTipL = opentrons_96_tiprack_300ul
-				
+	   class Example():
+		  def __init__ (self):
+               self.APINameTipR = opentrons_96_tiprack_20ul
+               self.APINameTipL = opentrons_96_tiprack_300ul
+
 4. **program_variables** (_custom class_):  script class with attributes pipR (pipette on the right mount), pipL (pipette on the left mount) and deckPositions (Dictionary with deck positions as keys and labware/module object as the value).
 
 	For example:
 
-		class Example():
-		  	def __init__ (self):
-		  		self.pipR = P20 Single-Channel GEN2 on right mount
-		                self.pipL = P300 Single-Channel GEN2 on left mount
+	   class Example():
+		  def __init__ (self):
+                self.pipR = P20 Single-Channel GEN2 on right mount
+		        self.pipL = P300 Single-Channel GEN2 on left mount
 				self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
 
 5. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
@@ -383,7 +420,7 @@ Opentrons OT-2
 
 A function that will return the number of tubes needed for a reactive and how many reactions can be distributed from every tube
 	
-This function does not guarantee the lower number of tubes, but it assures that everything can be picked with the pipettes associated if the vol_reactive_per_reaction_factor can be picked with them.
+This function does not guarantee the lower number of tubes, but it assures that everything can be picked with the pipettes associated if the _vol_reactive_per_reaction_factor_ can be picked with them.
 	
 ### Tested systems
 
@@ -393,15 +430,38 @@ Opentrons OT-2
 
 ### Input
 3 inputs needed:
-1. **vol_reactive_per_reaction_factor** (_float_):  the volume of that reactive/reaction
+1. **vol_reactive_per_reaction_factor** (_float_):  The volume of reactive/reaction
+
+   For example:
+      
+       20
 2. **number_reactions** (_integer_): Total number of reactions
+
+   For example:
+   
+       200
 3. **vol_max_tube** (_float_): Maximum volume of the tubes
 
+   For example:
+   
+       2000
 ### Output
 3 outputs:
 * **number_tubes** (_integer_): final number of tubes that are needed
+
+   For example:
+
+       3
 * **reactions_per_tube** (_list_): list of how many reactions per tube are holding the tubes
+
+   For example:
+
+       [67, 67, 66]
 * **volumes_tubes** (_list_): volume of each tube
+
+   For example:
+
+       [1340, 1340, 1320]
 
 ### Summary of functioning
 1. Initializing the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_
@@ -416,7 +476,7 @@ Opentrons OT-2
 
 A function that will return the optimal pipette for the given volume.
 	
-If it is a greater volume than the maximum pipette volume, it will return the pipette that will give the minimal amount of movements.
+If it is a greater volume than the maximum pipette volume, it will return the pipette that will give the minimal amount of movements to transfer the volume.
 	
 If none of the pipettes attached can pick the volume, the function will raise an error.
 
@@ -431,9 +491,20 @@ Opentrons OT-2
 ### Input
 3 inputs are needed:
 1. **aVolume** (_float_): volume that wants to be picked with the given pipettes
+
+   For example:
+   
+       50
 2. **pipette_r** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached right pipette
+
+   For example:
+       
+       P20 Single-Channel GEN2 on right mount
 3. **pipette_l** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached left pipette
 
+   For example:
+   
+       P1000 Single-Channel GEN2 on left mount
 ### Output
 * Pipette selected to handle the _aVolume_
 * Exception in case there is no suitable pipette for the _aVolume_
@@ -485,16 +556,28 @@ Opentrons OT-2
 
 ### Input
 2 inputs are needed:
-1. **vol_falcon** (_float_): Volume that the tube in the _theory_position_ has
-2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that is going to check and return the position to
+1. **vol_falcon** (_float_): Volume that the tube in the _theory_position_ has.
+
+   For example:
+   
+       1000
+2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that is going to check and return the position of.
+
+   For example:
+   
+       B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2
 
 ### Output
 
-* **final_position** (_opentrons.protocol_api.labware.Well_): Tube with the height position that the pipette is going to aspirate or dispense from given the _vol_faalcon_
+* **final_position** (_opentrons.types.Location_): Location of the tube with the height position that the pipette is going to aspirate or dispense from given the _vol_falcon_
 
+   For example:
+       
+       Location(point=Point(x=146.38, y=67.74, z=31.849999999999994)
 ### Summary of functioning
 1. Check the volume that was given in _vol_falcon_
 2. Assign the height measured for that volume
+3. Return position with assigned height
 
 ## `run_program_thermocycler`
 
@@ -511,6 +594,10 @@ Opentrons OT-2
 ### Input
 7 inputs are needed
 1. **tc_mod** (_opentrons.protocol_api.module_contexts.ThermocyclerContext_)
+
+   For example:
+       
+       ThermocyclerContext at Thermocycler Module GEN1 on 7 lw None
 2. **program** (_pandas.core.frame.DataFrame_): Dataframe with 4 columns determining the steps and cycles the temperature profile will perform. Every row is a step of the profile.
    These are the columns:
    1. Temperature (_float_): The temperature, in centigrades, of this specific step
@@ -531,23 +618,28 @@ Opentrons OT-2
         | 45 | 30 | - | - |
         | 99 | 90 | 30 | End |
         | 72 | 300 | - | - |
-4. **lid_temperature** (_float_): Value that will determine the value of the lid temperature during all the temperature profile. For example:
-		
-  	    100
-5. **final_lid_state** (_boolean_): Value that determines if the lid of the module will be open (True) or closed (False) at the end of the temperature profile. For example
-	    
-	    	True
-6. **final_block_state**(_NaN|float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
+4. **lid_temperature** (_float_): Value that will determine the value of the lid temperature during all the temperature profile.
 
-   For example
+   For example:
 		
-		25
+       100
+5. **final_lid_state** (_boolean_): Value that determines if the lid of the module will be open (True) or closed (False) at the end of the temperature profile.
+
+   For example:
+	    
+       True
+6. **final_block_state** (_NaN|float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
+
+   For example:
+		
+	   25
 7. **volume_sample** (_float_): volume of the well that contains more liquid.
    
-   For example
+   For example:
 		
-  	    20
-8. **protocol**(_opentrons.protocol_api.protocol_context.ProtocolContext_)
+  	   20
+8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+
 ### Output
 
 * Performance of a temperature profile
@@ -592,13 +684,21 @@ Opentrons OT-2
 
 ### Input
 5 inputs are required
-1. **number_labware** (_integer_): Number of slots that the labware set in _labware_name_ will be defined if possible
-2. **labware_name** (_string_): API labware name that is going to be loaded in the deck
+1. **number_labware** (_integer_): Number of slots that the labware set in _labware_name_ will be defined if possible.
+
+   For example:
+       
+       2
+2. **labware_name** (_string_): API labware name that is going to be loaded in the deck.
+   
+   For example:
+   
+       opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap
 3. **positions** (_dict_): Dictionary with the different slot places of the deck as keys and the values of the slot as values. If they are empty slots, the values should be None. Otherwise, the name of the labware that is occupying that slot.
 
    For example:
    
-   		{1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
+       {1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
 4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 5. **label** (_None|string|list_): names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
 
@@ -611,7 +711,7 @@ Opentrons OT-2
 
   For example:
 
-  		{3: biorad_96_wellplate_200ul_pcr}
+       {3: biorad_96_wellplate_200ul_pcr}
 
 ### Summary of functioning
 1. Set the items of _positions_ that have None as a value in a variable called _position_plates_
@@ -654,19 +754,19 @@ Opentrons OT-2
 8 inputs are needed
 1. **vol_transfer_reaction** (_float_): volume per reaction that needs to be transferred from _positions_source_tubes_ to _positions_final_tubes_.
 
-   For example
+   For example:
    		
-   		25
+       25
 3. **positions_source_tubes** (_list of opentrons.protocol_api.labware.Well'_): List of tube(s) that are going to be the source wells of the transfer
 
    For example:
    		
-   		[A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2, B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2]
+       [A1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2, B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2]
 5. **reactions_source_tubes** (_list of integers_): List of the reactions per tube that corresponds to the number of reactions that can be transferred to the _positions_final_tubes_
 
    For example:
    	
-   		[27, 27]
+       [27, 27]
 7. **positions_final_tubes** (_list of opentrons.protocol_api.labware.Well_): Final destination of the transfer from _posiions_source_tubes_
 
    For example:
@@ -676,12 +776,12 @@ Opentrons OT-2
 
    For example:
    		
-   		[18, 18, 18]
+       [18, 18, 18]
 10. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick) and startingTipPipL (the first tip that the left pipette should pick).
 
 	For example:
 
-		class Example():
+	    class Example():
 		  	def __init__ (self):
                 self.APINameTipR = opentrons_96_tiprack_20ul
                 self.APINameTipL = opentrons_96_tiprack_300ul
