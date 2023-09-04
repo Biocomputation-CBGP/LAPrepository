@@ -451,17 +451,17 @@ Opentrons OT-2
 
    For example:
 
-       3
+      3
 * **reactions_per_tube** (_list_): list of how many reactions per tube are holding the tubes
 
    For example:
 
-       [67, 67, 66]
+      [67, 67, 66]
 * **volumes_tubes** (_list_): volume of each tube
 
    For example:
 
-       [1340, 1340, 1320]
+      [1340, 1340, 1320]
 
 ### Summary of functioning
 1. Initializing the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_
@@ -573,7 +573,7 @@ Opentrons OT-2
 
    For example:
        
-       Location(point=Point(x=146.38, y=67.74, z=31.849999999999994)
+      Location(point=Point(x=146.38, y=67.74, z=31.849999999999994)
 ### Summary of functioning
 1. Check the volume that was given in _vol_falcon_
 2. Assign the height measured for that volume
@@ -603,7 +603,7 @@ Opentrons OT-2
    1. Temperature (_float_): The temperature, in centigrades, of this specific step
    2. Time (s) (_float_): The time, in seconds, that this specific step
    3. Number of cycles (_-|integer_): If the step is part of a cycle and the value of the column "Cycle Status" is set as _End_, this represents the number of times the cycle will be performed. Otherwise, this column should have a hyphen as a value.
-   4. Cycle Status (_Start|End|-_): Variable that states which part of a cycle this step corresponds to. If the step is not the start or end of the cycle, it should have a hyphen as a value. Also, if the step is not inside a cycle, it should be filled with a hyphen.
+   4. Cycle Status (_Start | End | -_): Variable that states which part of a cycle this step corresponds to. If the step is not the start or end of the cycle, it should have a hyphen as a value. Also, if the step is not inside a cycle, it should be filled with a hyphen.
       If the step is the first one of a cycle, this column should be filled with the value _Start_. If it is the last step of a cycle, the value should be _End_.
 
       For example:
@@ -628,7 +628,7 @@ Opentrons OT-2
    For example:
 	    
        True
-6. **final_block_state** (_NaN|float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
+6. **final_block_state** (_NaN | float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
 
    For example:
 		
@@ -700,7 +700,7 @@ Opentrons OT-2
    
        {1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
 4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
-5. **label** (_None|string|list_): names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
+5. **label** (_None | string | list_): names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
 
     For example:
 		
@@ -914,7 +914,7 @@ Opentrons OT-2
 3 inputs are needed:
 1. **list_wells** (_list_): initial list from where the sublist will be exctracted
 2. **number_samples_take** (_int_): number of elements that the final sublist should have
-3. **type selection** (_first|last|random_): way of picking the elements of the final sublist from th einitial one:
+3. **type selection** (_first | last | random_): way of picking the elements of the final sublist from th einitial one:
    * _first_: the function will return the first _number_samples_take_ elements of _list_wells_
    * _last_: the function will return the last _number_samples_take_ elements of _list_wells_
    * _random_: the function will return _number_samples_takle_ random but not repetead elements of _list_wells_ 
