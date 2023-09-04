@@ -873,32 +873,82 @@ volumes_distribute, positions_distribute, pip_r, pip_l
        P300 Single-Channel GEN2 on left mount
 
 ### Output
-* **** (_list_)
-* **** (_list_)
-* **** (_list_)
-* **** (_list_)
+
+* **vol_r** (_list_): list of volumes that have been associated by the function `optimal_pipette_use` to the right mount pipette from the list _volumes_distribute_
+* **pos_r** (_list_): positions associated with the elements in the list _vol_r_
+* **vol_l** (_list_): list of volumes that have been associated by the function `optimal_pipette_use` to the left mount pipette  from the list _volumes_distribute_
+* **pos_l** (_list_): positions associated with the elements in the list _vol_l_
+
 ### Summary of functioning
+1. Initiate the variables that we are going to return
+2. For loop that goes through the elements of the input _volumeS_distribute_
+   1. Check if the volume is 0. If it is, we go to the next element of the loop.
+      
+      **Volume is 0**
+      1. Go to the next element of the list
+   2. Obtain the pipette that could transfer the volume using the function `optimal_pipette_use`
+   3. Check the selected pipette's mount
+      
+      _Pipette in right mount_
+      1. Add the volume to the the _vol_r_ list
+      2. Add the position that corresponds to that volume to the _pos_r_ list
+      
+      _Pipette in left mount_
+      1. Add the volume to the the _vol_l_ list
+      2. Add the position that corresponds to that volume to the _pos_l_ list
+3. Return 4 objects: _vol_r_, _vol_l_, _pos_r_ and _pos_l_
 
 ## `wells_selection`
 
 ### Objective
+Function that will return a sublist of an input with a different set of elements depending on the type of selection that has been set in the input of the function.
 
 ### Tested systems
 
 Opentrons OT-2
 
 ### Requirements
+* python package called _random_
 
 ### Input
+3 inputs are needed:
+1. **list_wells** (_list_): initial list from where the sublist will be exctracted
+2. **number_samples_take** (_int_): number of elements that the final sublist should have
+3. **type selection** (_first|last|random_): way of picking the elements of the final sublist from th einitial one:
+   * _first_: the function will return the first _number_samples_take_ elements of _list_wells_
+   * _last_: the function will return the last _number_samples_take_ elements of _list_wells_
+   * _random_: the function will return _number_samples_takle_ random but not repetead elements of _list_wells_ 
 
 ### Output
+ * Sublist of _list_wells_
 
 ### Summary of functioning
+1. Check if the value of _number_samples_take_ respective to the len of _list_wells
+   
+   **_number_samples_take_ is greater than the length of _list_wells_**
+   1. Raise an exception
+2. Check the value of _type_selection_
+   
+   _type_selection is first_
+   1. Return the first _number_samples_take_ elements of _list_wells_
+   
+   _type_selection is last_
+   1. Return the firt _number_samples_take_ elements of a reversed verion of _list_wells_
+   
+   _type_selection is random_
+   1. Use the command _sample()_ from the random package to select randomly _number_samples_take_ elements from _list_wells_
+   
+   _type_selection is not first, last or random_
+   1. Raise an exception
 
 ## `z_positions_mix`
 
 ### Objective
 
+Function that will return heights (z) for mixing a 1.5mL eppendorf in function of the volume in the tube.
+
+The return heights have been measured by hand.
+
 ### Tested systems
 
 Opentrons OT-2
@@ -907,6 +957,34 @@ Opentrons OT-2
 
 ### Input
 
+1 input is needed:
+1. **vol_mixing** (_float_): volume of the tube that the heights are going to be returned
+
 ### Output
 
+* List of 3 elements that represent the heights to mix according to the volume: the bottom, middle and top height to mix
+
 ### Summary of functioning
+1. Set the height value for different volumes on the eppendorf tube
+2. Check the volume provided in the input
+   
+   **Volume is lower or equal to 100uL**
+      1. Return for the 3 heights the bottom one, which is 1mm above the bottom of the tube
+   
+   **Volume is greater than 100uL and lower or equal than 250uL**
+      1. Return the heights corresponding to 1, 6 and 9 mm from the bottom
+   
+   **Volume is greater than 250uL and lower or equal than 500uL**
+      1. Return the heights corresponding to 1, 6 and 11 mm from the bottom
+   
+   **Volume is greater than 500uL and lower or equal than 750uL**
+      1. Return the heights corresponding to 6, 11 and 16 mm from the bottom
+   
+   **Volume is greater than 750uL and lower or equal than 1000uL**
+      1. Return the heights corresponding to 6, 11 and 20 mm from the bottom
+   
+   **Volume is greater than 1000uL and lower or equal than 1250uL**
+      1. Return the heights corresponding to 6, 16 and 25 mm from the bottom
+   
+   **Volume is greater than 1250uL**
+      1. Return the heights corresponding to 6, 16 and 30 mm from the bottom
