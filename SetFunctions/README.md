@@ -771,7 +771,7 @@ Opentrons OT-2
 
    For example:
 		
-	  [A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
+	   [A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
 5. **reactions_final_tubes** (_list of integers_): Number of reactions of the volume _vol_transfer_reaction_ that need to be transferred to each tube from _positions_source_tubes_
 
    For example:
@@ -781,7 +781,7 @@ Opentrons OT-2
 
     For example:
 
-	  class Example():
+	   class Example():
 	  	def __init__ (self):
         	        self.APINameTipR = opentrons_96_tiprack_20ul
                 	self.APINameTipL = opentrons_96_tiprack_300ul
@@ -792,7 +792,7 @@ Opentrons OT-2
 
     For example:
 
-	  class Example():
+	   class Example():
 		  def __init__ (self):
 			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
 8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
