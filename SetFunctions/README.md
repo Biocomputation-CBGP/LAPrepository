@@ -605,6 +605,7 @@ Opentrons OT-2
    3. Number of cycles (_-|integer_): If the step is part of a cycle and the value of the column "Cycle Status" is set as _End_, this represents the number of times the cycle will be performed. Otherwise, this column should have a hyphen as a value.
    4. Cycle Status (_Start | End | -_): Variable that states which part of a cycle this step corresponds to. If the step is not the start or end of the cycle, it should have a hyphen as a value. Also, if the step is not inside a cycle, it should be filled with a hyphen.
       If the step is the first one of a cycle, this column should be filled with the value _Start_. If it is the last step of a cycle, the value should be _End_.
+      A set of rows that has a Start but not an End will not be performed but if there is an End row that row will be performed as many times as the value in column "Number of Cycles".
 
       For example:
 
@@ -681,6 +682,7 @@ A function that will set a determined number of the same labware in free slots. 
 Opentrons OT-2
 
 ### Requirements
+* Error DeckConflictError from the package opentrons
 
 ### Input
 5 inputs are required
