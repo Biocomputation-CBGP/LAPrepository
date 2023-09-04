@@ -782,7 +782,7 @@ Opentrons OT-2
     For example:
 
 	   class Example():
-	  	def __init__ (self):
+	  	 def __init__ (self):
         	        self.APINameTipR = opentrons_96_tiprack_20ul
                 	self.APINameTipL = opentrons_96_tiprack_300ul
                 	self.startingTipPipR = "A1"
@@ -793,7 +793,7 @@ Opentrons OT-2
     For example:
 
 	   class Example():
-		  def __init__ (self):
+		 def __init__ (self):
 			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
 8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
