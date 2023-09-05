@@ -751,6 +751,7 @@ Opentrons OT-2
 
 ### Requirements
 * `check_tip_and_pick` function
+* `optimal_pipette_user` function
 
 ### Input
 8 inputs are needed
