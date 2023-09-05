@@ -789,14 +789,16 @@ Opentrons OT-2
                 	self.startingTipPipR = "A1"
                 	self.startingTipPipL = "B3"
 				
-7. **program_variables** (_custom class_):  script class with the attribute deckPositions (Dictionary with deck positions as keys and labware/module object as the value).
+7. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
 
     For example:
 
 	   class Example():
 		 def __init__ (self):
 			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
-8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+   			self.pipR = P1000 Single-Channel GEN2 on right mount
+   			self.pipL = P20 Single-Channel GEN2 on left mount
+9. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
