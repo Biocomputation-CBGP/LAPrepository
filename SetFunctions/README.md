@@ -79,8 +79,6 @@ Opentrons OT-2
 
 A function that will define a tiprack associated with a pipette in an available position that does not raise a space conflict error
 
-This function is used in the function `check_tip_and_pick`
-
 ### Tested systems
 
 Opentrons OT-2
