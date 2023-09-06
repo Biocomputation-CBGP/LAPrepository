@@ -786,7 +786,7 @@ Opentrons OT-2
    For example:
    		
        [18, 18, 18]
-8. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTipRack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
+8. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTiprack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
 
     For example:
 
