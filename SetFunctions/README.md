@@ -778,7 +778,7 @@ Opentrons OT-2
    For example:
    		
        [18, 18, 18]
-6. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick) and startingTipPipL (the first tip that the left pipette should pick).
+6. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTipRack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
 
     For example:
 
@@ -788,8 +788,9 @@ Opentrons OT-2
                 	self.APINameTipL = opentrons_96_tiprack_300ul
                 	self.startingTipPipR = "A1"
                 	self.startingTipPipL = "B3"
+   			self.replaceTipRack = True
 				
-7. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
+8. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
 
     For example:
 
