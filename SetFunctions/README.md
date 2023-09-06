@@ -855,6 +855,8 @@ Opentrons OT-2
 ### Objective
 A function with a set of 2 pipettes and a list of volumes will return the positions and volumes of the elements that each pipette should transfer or distribute
 
+In case the volume needed is 0, that position will not be in th final output
+
 ### Tested systems
 
 Opentrons OT-2
