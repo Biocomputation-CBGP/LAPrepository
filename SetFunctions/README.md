@@ -743,6 +743,8 @@ Opentrons OT-2
 
 A function destined to transfer a volume from 1 or more tubes with a volume associated with a set number of reactions to another tube or set of tubes with another set of reaction numbers
 
+The tracking of the number of reactions it is done only internally to the function.
+
 This funcion respects the pipette (s) states when calling them, meaning that if the pipette that is going to be used has a tip, it will not be dropped and pick another one, but that tip will be preserved and use until another pipette is choosen or the function finishes. As well, if a pipette which is not used has a tip, that one will not be dropped at any time.
 
 On the other hand, the final tip used in this function will be dropped
@@ -794,7 +796,7 @@ Opentrons OT-2
                 	self.APINameTipL = opentrons_96_tiprack_300ul
                 	self.startingTipPipR = "A1"
                 	self.startingTipPipL = "B3"
-   			self.replaceTipRack = True
+   			self.replaceTiprack = True
 				
 9. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
 
