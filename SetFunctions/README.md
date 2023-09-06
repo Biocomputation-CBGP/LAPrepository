@@ -779,11 +779,12 @@ Opentrons OT-2
 		
 	   [A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
 6. **reactions_final_tubes** (_list of integers_): Number of reactions of the volume _vol_transfer_reaction_ that need to be transferred to each tube from _positions_source_tubes_
-
+   The elements of this list are expected to be integers, but no error will be raised if theye are float.
+   
    For example:
    		
        [18, 18, 18]
-7. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTipRack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
+8. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTipRack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
 
     For example:
 
@@ -795,7 +796,7 @@ Opentrons OT-2
                 	self.startingTipPipL = "B3"
    			self.replaceTipRack = True
 				
-8. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
+9. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
 
     For example:
 
@@ -804,7 +805,7 @@ Opentrons OT-2
 			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
    			self.pipR = P1000 Single-Channel GEN2 on right mount
    			self.pipL = P20 Single-Channel GEN2 on left mount
-9. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+10. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
