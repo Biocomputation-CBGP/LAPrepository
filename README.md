@@ -3,7 +3,7 @@
 
 **LAP repository** (https://www.laprepo.cbgp.upm.es/) is a repository dedicated to protocols meant to automate experimental workflows. Its entries have a structured format designed to expedite the creation of new protocols. It serves as a valuable resource for researchers and scientists aiming to enhance efficiency and reproducibility in their laboratory experiments.
 
-In addition, LAP also contains scripts meant to help in the processing and analysis of the data created by the high-throughput experiments. These scripts are under the section LAPu and can be found on the same page.
+In addition, the LAP repository also contains scripts meant to help in the processing and analysis of the data created by the high-throughput experiments. These scripts are under the section LAPu and can be found on the same page.
 
 All _LAP_ and _LAPu_ entries have instructions and example variable files attached to allow users to use them directly in their experiments.
 
