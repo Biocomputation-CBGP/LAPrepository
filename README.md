@@ -1,4 +1,6 @@
 # LAP Repository
+![alt text](https://github.com/Biocomputation-CBGP/LAPrepository/blob/main/logo_LAP.svg)
+
 LAP (https://www.laprepo.cbgp.upm.es/) is a repository dedicated to protocols meant to automate experimental workflows. Its entries have a structured format designed to expedite the creation of new protocols. It serves as a valuable resource for researchers and scientists aiming to enhance efficiency and reproducibility in their laboratory experiments.
 
 In addition, LAP also contains scripts meant to help in the processing and analysis of the data created by the high-throughput experiments. These scripts are under the section LAPu and can be found on the same page.
@@ -7,7 +9,7 @@ All LAP and LAPu entries have instructions and example variable files attached t
 
 ## Structure of Github Repository
 
-### LAPEntries (Directory)
+### LAPEntries Directory
 
 1. LAP-Entry-1-Version-1 (Directory)
    1. code.py (Python script for LAP entry version 1)
@@ -23,7 +25,7 @@ All LAP and LAPu entries have instructions and example variable files attached t
    3. example.xlsx (Example variable file to test the protocol 2 for version 1)
 (Repeat this structure for other LAP entries and versions as needed)
 
-### LAPuEntries (Directory)
+### LAPuEntries Directory
 1. LAPu-Entry-1-Version-1 (Directory)
    1. script.py (Directory)
    2. instructions.pdf (instructions to use)
@@ -39,7 +41,7 @@ All LAP and LAPu entries have instructions and example variable files attached t
 (Repeat this structure for other LAPu entries as needed)
 
 
-### SetFunctions (Directory)
+### SetFunctions Directory
 1. function1.py (Function 1 used in LAPEntries, isolated for re-use)
 2. function2.py (Function 2 used in LAPEntries, isolated for re-use)
 3. function3.py (Function 3 used in LAPEntries, isolated for re-use)
