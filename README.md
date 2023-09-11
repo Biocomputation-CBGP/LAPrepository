@@ -11,30 +11,30 @@ All LAP and LAPu entries have instructions and example variable files attached t
 
 ### LAPEntries Directory
 
-1. LAP-Entry-1-Version-1 (Directory)
+1. **LAP-Entry-1-Version-1** (Directory)
    1. code.py (Python script for LAP entry version 1)
    2. instructions.pdf (instructions to use and guidances to fill variable file of the protocol for version 1)
    3. example.xlsx (Example variable file to test the protocol 1 for version 1)
-2. LAP-Entry-1-Version-2 (Directory)
+2. **LAP-Entry-1-Version-2** (Directory)
    1. code.py (Python script for LAP entry version 2)
    2. instructions.pdf (instructions to use and guidances to fill variable file of the protocol for version 2)
    3. example.xlsx (Example variable file to test the protocol 1 for version 2)
-3. LAP-Entry-2-Version-1 (Directory)
+3. **LAP-Entry-2-Version-1** (Directory)
    1. code.py (Python script for LAP entry version 2)
    2. instructions.pdf (instructions to use and guidances to fill variable file of the protocol for version 1)
    3. example.xlsx (Example variable file to test the protocol 2 for version 1)
 (Repeat this structure for other LAP entries and versions as needed)
 
 ### LAPuEntries Directory
-1. LAPu-Entry-1-Version-1 (Directory)
+1. _LAPu-Entry-1-Version-1_ (Directory)
    1. script.py (Directory)
    2. instructions.pdf (instructions to use)
    3. example (directory with example files)
-2. LAPu-Entry-1-Version-2 (Directory)
+2. _LAPu-Entry-1-Version-2_ (Directory)
    1. script.py (Directory)
    2. instructions.pdf (instructions to use)
    3. example (directory with example files)
-3. LAPu-Entry-2-Version-1 (Directory)
+3. _LAPu-Entry-2-Version-1_ (Directory)
    1. script.py (Directory)
    2. instructions.pdf (instructions to use)
    3. example (directory with example files)
@@ -42,10 +42,10 @@ All LAP and LAPu entries have instructions and example variable files attached t
 
 
 ### SetFunctions Directory
-1. function1.py (Function 1 used in LAPEntries, isolated for re-use)
-2. function2.py (Function 2 used in LAPEntries, isolated for re-use)
-3. function3.py (Function 3 used in LAPEntries, isolated for re-use)
-4. function4.py (Function 4 used in LAPEntries, has dependencies on function2.py)
+1. **function1.py** (Function 1 used in LAPEntries, isolated for re-use)
+2. **function2.py** (Function 2 used in LAPEntries, isolated for re-use)
+3. **function3.py** (Function 3 used in LAPEntries, isolated for re-use)
+4. **function4.py** (Function 4 used in LAPEntries, has dependencies on function2.py)
 (Repeat this structure for other functions as needed)
 
  * README.md (Repository README containing an explanation of the objective of each function and its requirements)
