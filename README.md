@@ -1,11 +1,11 @@
 # LAP Repository
 <img align="center" width="400" height="300" src="https://github.com/Biocomputation-CBGP/LAPrepository/blob/main/logo_LAP.svg">
 
-LAP (https://www.laprepo.cbgp.upm.es/) is a repository dedicated to protocols meant to automate experimental workflows. Its entries have a structured format designed to expedite the creation of new protocols. It serves as a valuable resource for researchers and scientists aiming to enhance efficiency and reproducibility in their laboratory experiments.
+**LAP repository** (https://www.laprepo.cbgp.upm.es/) is a repository dedicated to protocols meant to automate experimental workflows. Its entries have a structured format designed to expedite the creation of new protocols. It serves as a valuable resource for researchers and scientists aiming to enhance efficiency and reproducibility in their laboratory experiments.
 
 In addition, LAP also contains scripts meant to help in the processing and analysis of the data created by the high-throughput experiments. These scripts are under the section LAPu and can be found on the same page.
 
-All LAP and LAPu entries have instructions and example variable files attached to allow users to use them directly in their experiments.
+All _LAP_ and _LAPu_ entries have instructions and example variable files attached to allow users to use them directly in their experiments.
 
 ## Structure of Github Repository
 
