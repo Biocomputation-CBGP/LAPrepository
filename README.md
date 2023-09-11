@@ -7,6 +7,7 @@ In addition, LAP also contains scripts meant to help in the processing and analy
 
 All LAP and LAPu entries have instructions and example variable files attached to allow users to use them directly in their experiments.
 
+
 ## Structure of Github Repository
 
 ### LAPEntries Directory
