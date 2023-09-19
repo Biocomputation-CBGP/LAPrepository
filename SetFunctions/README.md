@@ -102,17 +102,17 @@ Opentrons OT-2
 
    For example:
 
-   	True
+        True
 7. **initial_tip** (_str_): optional argument that will define, in case that a tiprack needs to be loaded and it is the first one of it, the first tip that will be taken of the tiprack
 
    For example:
 
-   	A3
+        A3
 9. **same_tiprack** (_boolean_): optional argument that establish, in case there is a need of loading a tip rack,  if it is the same tiprack for both loaded pipettes
 
     For example:
 
-    	False
+        False
 
 ### Output
 * The dictionary _position_deck_ will be updated to have the new tiprack in case one has been defined in the course of function.
