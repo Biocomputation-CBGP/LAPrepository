@@ -158,6 +158,70 @@ Opentrons OT-2
 
 3. Pick a tip with the _pipette_used_
 
+## `combinations_table_to_dict`
+
+### Objective
+
+A function that takes a data frame and converts it to a dictionary where every row will be an item that has a key with th evalues of a column and the value is another dictionary where one item is the value of 1 column and the rest is the value of the other item.
+
+The key names of the "isolated" and the rest of the columns can be customized
+
+### Tested systems
+
+Opentrons OT-2
+
+### Requirements
+
+* pandas package
+
+### Input
+5 inputs are needed:
+1. **table** (_pandas.core.frame.DataFrame_): A pandas data frame must have at least 2 columns, the first one called "Name".
+	
+ 	For instance:
+
+    | Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
+    | ---- | ---------------- | ------ | ------ | ------ |
+    |Lv2-a1c1e1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-araC-B0015_E1-g2 | pLacI-RBS_BCD12-LacI-rpoC-g3 |
+    |Lv2-a1d1b1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-LacI-rpoC-g2 | pLacI-RBS_BCD12-araC-B0015_E1-g3 |
+    |Lv2-a2b2  |v_gA | pBad-RBS_BCD12-GFPmuy3-rpoC-g1R | pBad-RBS_BCD12-araC-B0015_E1-g2 |  |
+2. **column_key** (_str_): name of the column that will be used as the keys of the items in the output dictionary
+
+   For example:
+
+   	Name
+3. **column_isolated** (_str_): name of the column that is going to contain the values that are going to be isolated in the items of the output dictionary
+
+   For example:
+
+	Acceptor Plasmid
+4. **name_key_col_isolated** (_str_): optional argument that will give the key name of the isolated column for every row. By default it will be 'isolatedCol'
+
+   For example:
+
+   	acceptor
+6. **name_key_rest_columns** (_str_): optional argument that will give the key name of the list of values of rets of columns in _table_ of each row, excluding the values of _column_key_ and _column_isolated_
+
+   For example:
+
+	modules
+### Output
+
+* A dictionary in which the keys are the values of the column 'Name' of the _pd_combination_ and the values are another dictionary with 2 keys, 'acceptor' and 'modules'.
+Each row of the _pd_combiantion_ will be one item of the dictionary.
+
+	For instance:
+		
+	   {'Lv2-a1c1e1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-araC-B0015_E1-g2', 'pLacI-RBS_BCD12-LacI-rpoC-g3']}, 'Lv2-a1d1b1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-LacI-rpoC-g2', 'pLacI-RBS_BCD12-araC-B0015_E1-g3']}, 'Lv2-a2b2': {'acceptor': 'v_gA', 'modules': ['pBad-RBS_BCD12-GFPmuy3-rpoC-g1R', 'pBad-RBS_BCD12-araC-B0015_E1-g2']}}
+
+### Summary of functioning
+
+1. Check that _column_key_ and _column_isolated_ exist
+2. Go through the rows of _table_
+   1. Set the item with the key with the value of _column_key_ and the dictionary value with 2 items, one with the key _name_key_col_isolated_ and the value of the column _column_isolated_ and other with the key _name_key_rest_columns_ and an empty list
+   2. Fill the list of the item corresponding to _name_key_rest_columns_ with the values of the columns that are not _column_key_ and _column_isolated_
+3. Return the final dictionary _combination_dict_
+   
 ## `define_tiprack`
 
 ### Objective
@@ -338,50 +402,6 @@ Opentrons OT-2
         **> 1 element**
         1. Raise an exception
 2. Reached the end of the for loop without going through step 1.ii.**1 element**.a so raise an exception of _value_ not found
-
-## `generate_combinations_dict`
-
-### Objective
-
-A function that takes a specific type of data frame and converts it to a dictionary where the first column is the key, the second column will be
-in the value "acceptor", and the rest of the values of the row are in the "module" value.
-
-### Tested systems
-
-Opentrons OT-2
-
-### Requirements
-
-* pandas package
-
-### Input
-1 input is needed:
-1. **pd_combination** (_pandas.core.frame.DataFrame_): A pandas data frame must have at least 2 columns, the first one called "Name".
-	
- 	For instance:
-
-    | Name | Acceptor Plasmid | Part 1 | Part 2 | Part 3 |
-    | ---- | ---------------- | ------ | ------ | ------ |
-    |Lv2-a1c1e1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-araC-B0015_E1-g2 | pLacI-RBS_BCD12-LacI-rpoC-g3 |
-    |Lv2-a1d1b1 | v_gB | pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R | pLacI-RBS_BCD12-LacI-rpoC-g2 | pLacI-RBS_BCD12-araC-B0015_E1-g3 |
-    |Lv2-a2b2  |v_gA | pBad-RBS_BCD12-GFPmuy3-rpoC-g1R | pBad-RBS_BCD12-araC-B0015_E1-g2 |  |
-
-### Output
-
-* A dictionary in which the keys are the values of the column 'Name' of the _pd_combination_ and the values are another dictionary with 2 keys, 'acceptor' and 'modules'.
-Each row of the _pd_combiantion_ will be one item of the dictionary.
-
-	For instance:
-		
-	   {'Lv2-a1c1e1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-araC-B0015_E1-g2', 'pLacI-RBS_BCD12-LacI-rpoC-g3']}, 'Lv2-a1d1b1': {'acceptor': 'v_gB', 'modules': ['pBadpTac-RBS_BCD12-GFPmut3-rpoC-g1R', 'pLacI-RBS_BCD12-LacI-rpoC-g2', 'pLacI-RBS_BCD12-araC-B0015_E1-g3']}, 'Lv2-a2b2': {'acceptor': 'v_gA', 'modules': ['pBad-RBS_BCD12-GFPmuy3-rpoC-g1R', 'pBad-RBS_BCD12-araC-B0015_E1-g2']}}
-
-### Summary of functioning
-
-1. Get a list of the values of the column 'Name'
-2. With a for-loop, go through all the values of the column 'Name'
-	1. Get the elements of the row that has that name that is not a NaN value
-	2. Add to the final dictionary (_combination_dict_) the item with the value of 'Name' as a key, the first element of the elements of that row under 'acceptor' and the rest under the key 'module'
-3. Return the final dictionary _combination_dict_
 
 ## `generator_positions`
 
