@@ -189,22 +189,22 @@ Opentrons OT-2
 
    For example:
 
-   	Name
+	   Name
 3. **column_isolated** (_str_): name of the column that is going to contain the values that are going to be isolated in the items of the output dictionary
 
    For example:
 
-	Acceptor Plasmid
+	   Acceptor Plasmid
 4. **name_key_col_isolated** (_str_): optional argument that will give the key name of the isolated column for every row. By default it will be 'isolatedCol'
 
    For example:
 
-   	acceptor
+	   acceptor
 6. **name_key_rest_columns** (_str_): optional argument that will give the key name of the list of values of rets of columns in _table_ of each row, excluding the values of _column_key_ and _column_isolated_
 
    For example:
 
-	modules
+	   modules
 ### Output
 
 * A dictionary in which the keys are the values of the column 'Name' of the _pd_combination_ and the values are another dictionary with 2 keys, 'acceptor' and 'modules'.
