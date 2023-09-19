@@ -3,6 +3,64 @@ This repository contains the functions used in the LAP entries of the LAP reposi
 
 Each file is one function used in at least 1 LAP entry.
 
+## `calculate_max_reactions_constant_height_15mLfalcon`
+
+### Objective
+
+Function that will return the number of reactions that can be aspirate or dispensed from a flacon tube of 15mL without having to change the height of aspiration.
+
+This change of heights is given by another function, thi sfunction only check when this change of height happens and it is checked until a maximum number of reactions,
+which is given by the input given to the function
+
+### Tested systems
+
+Opentrons OT-2
+
+### Requirements
+
+* `find_safe_15mLfalcon_height` function
+
+### Input
+4 Inputs required:
+1. **tube** (_opentrons.protocol_api.labware.Well_): tube that is going to be the one from where the possible reactions will be calculated.
+
+   For example:
+
+   	A2 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2
+2. **vol_tube** (_int|float_): volume, in uL, that the well _tube_ has.
+
+   For example:
+
+   	5350
+4. **total_number_reactions** (_int_): maximum number of reactions that wanted to be checked. In case that this number of reactions can be aspirated without changing the height, this number will be returned.
+
+   For example:
+
+   	50
+6. **vol_per_reaction** (_int|float_): volume, in uL, that is going to be aspirated by reaction
+
+   For exmaple:
+
+   	20
+
+### Output
+
+* The number of reactions, in the range 0-_total_number_reactions_, that can be aspirated from a tube _well_ with the volume _vol_tube_ without changing heights according to the function _find_safe_15mLfalcon_height_ 
+
+### Summary of functioning
+1. Check if the volume of the tube is enough to aspirate the _total_number_reactions_
+2. Initiate the reactions in same height to 0
+3. While loop that will be accesed while the height to aspirate without taking the reactions and after is the same
+   1. Check if the current numbe rof reactions + 1 will be higher than _total_number_reaction
+
+      **reactions + 1 is higher than total number**
+
+      1. break the while loop
+      
+      **reactions + 1 is lower or equal than total number**
+
+      1. Add 1 to the reactions
+4. Return the number of reactions
 
 ## `check_tip_and_pick`
 
