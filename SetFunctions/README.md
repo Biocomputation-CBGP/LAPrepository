@@ -141,26 +141,26 @@ Opentrons OT-2
 
            1. Establish the starting tip for _pipette_used_
 
-	__Tip rack associated__
+    __Tip rack associated__
 
-	1. Check if the user wants the tip racks to be replaced
-	
-    	*No replacement tiprack*
-    	
-    	  1. A tiprack is defined if there is a place, and the dictionary _position_deck_ is updated to reflect that definition
+    1. Check if the user wants the tip racks to be replaced
+
+       *No replacement tiprack*
+
+       1. A tiprack is defined if there is a place, and the dictionary _position_deck_ is updated to reflect that definition
     
-    	*Replace tiprack*
-    		
-    	1. Pause the run so the user can replace the empty tip rack
-        2. Check if _same_tiprack_ is True
+       *Replace tiprack*
 
-           _Same tiprack_
+       1. Pause the run so the user can replace the empty tip rack
+       2. Check if _same_tiprack_ is True
 
-           1. Reset tip rack for both pipettes
+          _Same tiprack_
+
+          1. Reset tip rack for both pipettes
            
-	   _Different tiprack_
+	  _Different tiprack_
 
-    	   1. Reset tip rack
+    	  1. Reset tip rack
 
 3. Pick a tip with the _pipette_used_
 
