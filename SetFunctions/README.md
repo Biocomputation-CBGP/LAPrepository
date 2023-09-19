@@ -26,22 +26,22 @@ Opentrons OT-2
 
    For example:
 
-   	A2 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2
+   		A2 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2
 2. **vol_tube** (_int|float_): volume, in uL, that the well _tube_ has.
 
    For example:
 
-   	5350
+   		5350
 4. **total_number_reactions** (_int_): maximum number of reactions that wanted to be checked. In case that this number of reactions can be aspirated without changing the height, this number will be returned.
 
    For example:
 
-   	50
+   		50
 6. **vol_per_reaction** (_int|float_): volume, in uL, that is going to be aspirated by reaction
 
    For exmaple:
 
-   	20
+   		20
 
 ### Output
 
