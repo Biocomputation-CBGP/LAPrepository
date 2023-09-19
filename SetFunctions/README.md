@@ -226,7 +226,7 @@ Each row of the _pd_combiantion_ will be one item of the dictionary.
 
 ### Objective
 
-A function that will define a tiprack associated with a pipette in an available position that does not raise a space conflict error
+A function that will define a tip rack associated with a pipette in an available position that does not raise a space conflict error
 
 ### Tested systems
 
@@ -242,24 +242,26 @@ Opentrons OT-2
    For example:
         
        P20 Single-Channel GEN2 on right mount object
-2. **position_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value.
+2. **tiprack_name** (_str_):
+
+   For example:
+
+    	opentrons_96_filtertiprack_1000ul
+3. **position_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value.
    
    For example:
 
        {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables_define_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with right mount pipette) and APINameTipL (name of the tiprack associated with left mount pipette).
+4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+5. **same_tiprack** (_boolean_): optional argument that will establish if the tip racks of both right and left pipette are the same ones (True) or different ones (False)
 
-    For example:
-    
-       class Example():
-            def __init__ (self):
-                self.APINameTipR = opentrons_96_tiprack_20ul
-                self.APINameTipL = opentrons_96_tiprack_300ul
-5. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+   For example:
 
+    	True
 ### Output
 
-* Dictionary with the selected position as a key and the tiprack defined as a value.
+* Tip rack defined in the labware, it will be registered in the ProtocolContext
+* Dictionary with the selected position as a key and _tiprack_name_ as the value.
 
     For example:
 
@@ -268,19 +270,19 @@ Opentrons OT-2
 ### Summary of functioning
 
 1. Define all positions in the deck that are empty
-2. Define which tiprack is the one associated with the given _pipette_ variable
-3. Check that the deck has any position left. If not, an Exception is raised
-4. Loop over the positions until the tiprack is defined
+2. Check that the deck has any position left. If not, an Exception is raised
+3. Loop over the positions until the tiprack is defined
 
    1. Try to establish the tiprack. If a _DeckConflictError_ is raised, the loop will go to the free position. If not, the rest of the steps are going to be performed
-   2. Check if the tipracks of the left and right pipettes are the same ones
+   2. Check if same_tiprack is True and both pipettes are established
 
-      **Same tiprack**
+      **Same tiprack and both pipettes established**
       1. Define the same tip rack for both pipettes
       
-      **Different tipracks**
+      **Different tipracks or 1 pipette not established**
       1. Define the tip rack on the given pipette
-5. If the tiprack has not been defined after the loop, an Exception will be raised
+   3. Return the position and tip rack in a dictionary
+4. If the tiprack has not been defined after the loop, an Exception will be raised
 
 ## `distribute_z_tracking_falcon15ml`
 
