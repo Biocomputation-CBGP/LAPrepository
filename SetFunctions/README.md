@@ -80,29 +80,30 @@ Opentrons OT-2
 * `define_tiprack` function
 	
 ### Input
-4 Inputs required:
+7 Inputs required:
 1. **pipette\_used** (_opentrons.protocol_api.instrument_context.InstrumentContext_):
 
    For example:
         
         P20 Single-Channel GEN2 on right mount object
-2. **position\_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value.
+2. **tiprack** (_str_): tiprack API name asociated to the _pipette_used_ is going to try to pick a tip from and in case that there is no more, a tiprack will be defined with _define_tiprack_
+
+    For example:
+
+   	opentrons_96_tiprack_20ul
+3. **position\_deck** (_dictionary_): Dictionary with deck positions as keys and labware/module object as the value.
 
    For example:
 
        {1: Opentrons 96 Tip Rack 20 µL on 1, 2: Opentrons 96 Tip Rack 20 µL on 2, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None, 10: None, 11: None}
-3. **variables\_define\_tiprack** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette) and APINameTipL (name of the tiprack associated with the left mount pipette). 
 
-   For example:
-
-       class Example():
-            def __init__ (self):
-                self.APINameTipR = opentrons_96_tiprack_20ul
-                self.APINameTipL = opentrons_96_tiprack_300ul
 4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
-	 
+5. **replace_tiprack** (_boolean_): optional argument that will define if, in case a tiprack is going to be load, the new tip rack will be add to the labware or , if there is an already other tip rack, replace the existent tip rack labware
+6. **initial_tip** (_str_): optional argument that will define, in case that a tiprack needs to be loaded and it is the first one of it, the first tip that will be taken of the tiprack
+7. **same_tiprack** (_boolean_): optional argument that establish, in case there is a need of loading a tip rack,  if it is the same tiprack for both loaded pipettes
+
 ### Output
-* The dictionary _position_deck_ will be updated to have the new tiprack.
+* The dictionary _position_deck_ will be updated to have the new tiprack in case one has been defined in the course of function.
 * The provided pipette will pick up a tip if a tip rack has been set.
 	
 ### Summary of functioning
@@ -115,6 +116,19 @@ Opentrons OT-2
 
     2. Check with mount the pipette is and assign the starting tip of that pipette
 
+        __No tip rack associated__
+        
+	1. A tip rack is defined
+        2. Check if the pipettes have the same tip rack associated
+
+           *Same tip rack*
+
+           1. Establish the same starting tip for both pipettes
+		
+           *Different tip rack*
+
+           1. Establish the starting tip for _pipette_used_
+
 	__Tip rack associated__
 
 	1. Check if the user wants the tip racks to be replaced
@@ -126,8 +140,15 @@ Opentrons OT-2
     	*Replace tiprack*
     		
     	1. Pause the run so the user can replace the empty tip rack
-    	
-    	2. Reset tip rack
+        2. Check if _same_tiprack_ is True
+
+           _Same tiprack_
+
+           1. Reset tip rack for both pipettes
+           
+	   _Different tiprack_
+
+    	   1. Reset tip rack
 
 3. Pick a tip with the _pipette_used_
 
