@@ -122,24 +122,18 @@ Opentrons OT-2
 1. Pick a tip with the _pipette\_used_ category. If that raises an OutTipError, steps 2 and 3 will be performed. If not, it will exit the function
 2. Check if the _pipette\_used_ has any tiprack associated:
 	
-    __No tip racks associated__
-	
-    1. A space, if it is available, is designated to the new tiprack with  the function `define_tiprack`
-
-    2. Check with mount the pipette is and assign the starting tip of that pipette
-
-        __No tip rack associated__
+    __No tip rack associated__
         
 	1. A tip rack is defined
-        2. Check if the pipettes have the same tip rack associated
+    2. Check if the pipettes have the same tip rack associated
 
-           *Same tip rack*
+       *Same tip rack*
 
-           1. Establish the same starting tip for both pipettes
+       1. Establish the same starting tip for both pipettes
 		
-           *Different tip rack*
+       *Different tip rack*
 
-           1. Establish the starting tip for _pipette_used_
+       1. Establish the starting tip for _pipette_used_
 
     __Tip rack associated__
 
@@ -153,14 +147,14 @@ Opentrons OT-2
 
        1. Pause the run so the user can replace the empty tip rack
        2. Check if _same_tiprack_ is True
+       
+            _Same tiprack_
 
-          _Same tiprack_
-
-          1. Reset tip rack for both pipettes
+            1. Reset tip rack for both pipettes
            
-	  _Different tiprack_
+	        _Different tiprack_
 
-    	  1. Reset tip rack
+    	    1. Reset tip rack
 
 3. Pick a tip with the _pipette_used_
 
