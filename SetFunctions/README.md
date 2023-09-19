@@ -287,9 +287,8 @@ Opentrons OT-2
 ## `distribute_z_tracking_falcon15ml`
 
 ### Objective
-A function that will distribute from 1 well (15mL falcon tube) to a list of wells tracking the height of the 15mL falcon tube to avoid the pipette getting wet
 
-This function does not track if there is enough volume to transfer to all the wells.
+A function that will distribute from 1 well (15mL falcon tube) to a list of wells tracking the height of the 15mL falcon tube to avoid the pipette getting wet
 
 ### Tested systems
 
@@ -297,7 +296,8 @@ Opentrons OT-2
 
 ### Requirements
 
-* Function `position_dispense_aspirate_falcon15ml`
+* Function `find_safe_15mLfalcon_height`
+* Function `calculate_max_reactions_constant_height_15mLfalcon`
 
 ### Input
 5 Inputs required:
@@ -326,40 +326,26 @@ Opentrons OT-2
        [A1 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A2 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, A3 of Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2]
 
 ### Output
+* _vol_source_ is the remaining volume in _pos_source_ after distributing the volume to the wells 
 * Wells established in _pos_final_ with _vol_distribute_well_ uL volume in them
 
 ### Summary of functioning
-1. While loop that will go until there are no wells in the list _pos_final_:
-    1. Check if the position before and after taking the volume is the same with the function `position_dispense_aspirate_falcon15ml` for the rest of the wells in the _pos_final_
-    
-        **Same height**
-    
-        1. _pipette_used_ will distribute the _vol_distribute_well_ to the positions in _pos_final_
-        2. Subtract the volume that has been distributed from the _pos_source_
-    
-        **Different height**
-    
-        1. Loop over the different length positions in _pos_final_
-        2. Check if, with that length position, the position before and after the distribution will be the same
-        
-            _Same height_
-            
-            1. Go to the next length position
-            
-            _Different height_
-            
-            1. _pipette_used_ will distribute the _vol_distribute_well_ to the positions in _pos_final_
-            2. Subtract the volume that has been distributed from the _pos_source_
-            3. Break the for-loop
+1. Check if there is enough volume in the _pos_source_ to distribute _vol_distribute_well_ to all _pos_final_
+2. Check that _pipette_used_ has a tip to distribute 
+3. While loop that will go until all positions of _pos_final_ have been distributed:
+    1. Calculate how many reactions can be dispensed before changing height of aspiration
+    2. Set the wells to distribute
+    3. Distribute with _pipette_used_
+    4. Update the volumen of the tube
+4. Return the remaining volume of the tube
 
 ## `find_well_by_value`
 
 ### Objective
 
-Given a table or a set of tables, a set value will be searched in them. In case that value is in the given tables, the value of the well
-of the labware where that value will be returned.
+Given a table or a set of tables, a set value will be searched in them. In case that value is in the given tables, a list of the well or wells of the labware where that value will be returned.
 
-Otherwise, an exception will be raised if it is not in the table(s) or is repeated within the table.
+Otherwise, an exception will be raised if it is not in the table(s).
 
 ### Tested systems
 
@@ -393,17 +379,12 @@ Opentrons OT-2
 
 1. For loop through the values in _possible_labwares_
     1. Obtain the values of all cells with _value_. We will obtain a 'pandas.core.indexes.multi.MultiIndex' where every element is a tuple containing the dataframe cells where the value has been found. The first element of that touple will be the index of the cell and the second one the name of the column.
-    2. Check how many elements the multi-index object has
-    
-        **0 element**
-        1. Continue to the next element of _possible_labwares_
-    
-        **1 element**
-        1. Return the well of the labware where the value has been found
-    
-        **> 1 element**
-        1. Raise an exception
-2. Reached the end of the for loop without going through step 1.ii.**1 element**.a so raise an exception of _value_ not found
+    2. If the multi-index object has 0 elements it will continue to the next element of _possible_labware_
+    3. For loop throught the cells that the value is
+       1. Get the well value joining the name of the column with the name of the index of that cell
+       2. Try to append the well from the labware to the list of all cells where the value is. If that well does not exist an exception will be raised 
+2. If list of wells where the value is founded is empty an exception is raised
+3. Return the list of wells where the value is found 
 
 ## `generator_positions`
 
