@@ -339,6 +339,46 @@ Opentrons OT-2
     4. Update the volumen of the tube
 4. Return the remaining volume of the tube
 
+## `find_safe_15mLflacon_height`
+
+### Objective
+
+A function that will return the height that the pipette should aspirate or dispense the volume without getting wet but it has liquid
+
+The heights are measured manually.
+
+### Tested systems
+
+Opentrons OT-2
+
+### Requirements
+
+### Input
+2 inputs are needed:
+1. **vol_falcon** (_float_): Volume that the tube in the _theory_position_ has.
+
+   For example:
+   
+       1000
+2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that will be used to establish at which height the pipette should aspirate or dispense.
+
+   For example:
+   
+       B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2
+
+### Output
+
+* **final_position** (_opentrons.types.Location_): Location of the tube with the height position that the pipette is going to aspirate or dispense from given the _vol_falcon_
+
+   For example:
+       
+      Location(point=Point(x=146.38, y=67.74, z=31.849999999999994)
+
+### Summary of functioning
+1. Check the volume that was given in _vol_falcon_
+2. Assign the height measured for that volume
+3. Return position with assigned height
+
 ## `find_well_by_value`
 
 ### Objective
@@ -627,45 +667,6 @@ Opentrons OT-2
 	2. Update the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_ to add that extra tube
 3. Return the output variables
 
-## `position_dispense_aspirate_falcon15ml`
-
-### Objective
-
-A function that will return the height that the pipette should aspirate the volume without getting wet
-
-The heights are measured manually.
-
-### Tested systems
-
-Opentrons OT-2
-
-### Requirements
-
-### Input
-2 inputs are needed:
-1. **vol_falcon** (_float_): Volume that the tube in the _theory_position_ has.
-
-   For example:
-   
-       1000
-2. **theory_position** (_opentrons.protocol_api.labware.Well_): Tube that will be used to establish at which height the pipette should aspirate or dispense.
-
-   For example:
-   
-       B1 of Opentrons 15 Tube Rack with Falcon 15 mL Conical on 2
-
-### Output
-
-* **final_position** (_opentrons.types.Location_): Location of the tube with the height position that the pipette is going to aspirate or dispense from given the _vol_falcon_
-
-   For example:
-       
-      Location(point=Point(x=146.38, y=67.74, z=31.849999999999994)
-### Summary of functioning
-1. Check the volume that was given in _vol_falcon_
-2. Assign the height measured for that volume
-3. Return position with assigned height
-
 ## `run_program_thermocycler`
 
 ### Objective
@@ -844,7 +845,7 @@ Opentrons OT-2
 
 ### Requirements
 * `check_tip_and_pick` function
-* `optimal_pipette_user` function
+* `give_me_optimal_pipette` function
 * `generator_positions` function
 
 ### Input
@@ -951,7 +952,7 @@ In case the volume needed is 0, that position will not be in th final output
 Opentrons OT-2
 
 ### Requirements
-* `optimal_pipette_use` function
+* `give_me_optimal_pipette` function
 ### Input
 volumes_distribute, positions_distribute, pip_r, pip_l
 4 inputs are needed:
@@ -978,9 +979,9 @@ volumes_distribute, positions_distribute, pip_r, pip_l
 
 ### Output
 
-* **vol_r** (_list_): list of volumes that have been associated by the function `optimal_pipette_use` to the right mount pipette from the list _volumes_distribute_
+* **vol_r** (_list_): list of volumes that have been associated by the function `give_me_optimal_pipette` to the right mount pipette from the list _volumes_distribute_
 * **pos_r** (_list_): positions associated with the elements in the list _vol_r_
-* **vol_l** (_list_): list of volumes that have been associated by the function `optimal_pipette_use` to the left mount pipette  from the list _volumes_distribute_
+* **vol_l** (_list_): list of volumes that have been associated by the function `give_me_optimal_pipette` to the left mount pipette  from the list _volumes_distribute_
 * **pos_l** (_list_): positions associated with the elements in the list _vol_l_
 
 ### Summary of functioning
@@ -990,7 +991,7 @@ volumes_distribute, positions_distribute, pip_r, pip_l
       
       **Volume is 0**
       1. Go to the next element of the list
-   2. Obtain the pipette that could transfer the volume using the function `optimal_pipette_use`
+   2. Obtain the pipette that could transfer the volume using the function `give_me_optimal_pipette`
    3. Check the selected pipette's mount
       
       _Pipette in right mount_
