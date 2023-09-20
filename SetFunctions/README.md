@@ -416,6 +416,77 @@ Opentrons OT-2
 1. For-loop of the elements in the _labware_wells_name_ list
 	1. Yield the element of the list
 
+## `give_me_optimal_pipette`
+
+### Objective
+
+A function that will return the optimal pipette for the given volume.
+	
+If it is a greater volume than the maximum pipette volume, it will return the pipette that will give the minimal amount of movements to transfer the volume.
+	
+If none of the pipettes attached can pick the volume, the function will raise an error.
+
+### Tested systems
+
+Opentrons OT-2
+
+### Requirements
+
+* NotSuitablePipette custom exception (included in the file)
+
+### Input
+3 inputs are needed:
+1. **aVolume** (_float_): volume that wants to be picked with the given pipettes
+
+   For example:
+   
+       50
+2. **pipette_r** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached right pipette. If not provided will be established as None
+
+   For example:
+       
+       P20 Single-Channel GEN2 on right mount
+3. **pipette_l** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached left pipette.  If not provided will be established as None
+
+   For example:
+   
+       P1000 Single-Channel GEN2 on left mount
+
+### Output
+* Pipette selected to handle the _aVolume_
+* Exception in case there is no suitable pipette for the _aVolume_
+
+### Summary of functioning
+1. Check that there is a pipette attached
+
+   **No pipette attached**
+	1. Raise an exception
+
+   **1 Pipette attached and can aspirate _aVolume_**
+	1. Return the pipette
+
+   **2 pipettes attached**
+   
+   1. Check if the pipettes can handle _aVolume_
+      
+      _Both pipettes can handle aVolume_
+   	  
+      1. Check which pipette has the higher minimum volume and return that pipette
+   	   
+   	  
+      _Only 1 pipette can handle aVolume_
+	  
+      1. Return pipette that can handle _aVolume_
+   	   
+   	  
+      _No pipette can handle aVolume_
+   	  
+      1. Raise NotSuitablePipette exception
+    	
+   **Other situation**
+   	
+   1. Raise NotSuitablePipette exception
+
 ## `mixing_eppendorf_15`
 
 ### Objective
@@ -428,7 +499,7 @@ Opentrons OT-2
 
 ### Requirements
 
-* `optimal_pipette_use` function
+* `give_me_optimal_pipette` function
 * `check_tip_and_pick` function
 * `z_positions_mix` function
 * NotSuitablePipette custom exception (included in the file)
@@ -555,76 +626,6 @@ Opentrons OT-2
 	1. Add 1 tube more
 	2. Update the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_ to add that extra tube
 3. Return the output variables
-
-## `optimal_pipette_use`
-
-### Objective
-
-A function that will return the optimal pipette for the given volume.
-	
-If it is a greater volume than the maximum pipette volume, it will return the pipette that will give the minimal amount of movements to transfer the volume.
-	
-If none of the pipettes attached can pick the volume, the function will raise an error.
-
-### Tested systems
-
-Opentrons OT-2
-
-### Requirements
-
-* NotSuitablePipette custom exception (included in the file)
-
-### Input
-3 inputs are needed:
-1. **aVolume** (_float_): volume that wants to be picked with the given pipettes
-
-   For example:
-   
-       50
-2. **pipette_r** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached right pipette
-
-   For example:
-       
-       P20 Single-Channel GEN2 on right mount
-3. **pipette_l** (_opentrons.protocol_api.instrument_context.InstrumentContext_): attached left pipette
-
-   For example:
-   
-       P1000 Single-Channel GEN2 on left mount
-### Output
-* Pipette selected to handle the _aVolume_
-* Exception in case there is no suitable pipette for the _aVolume_
-
-### Summary of functioning
-1. Check that there is a pipette attached
-
-   **No pipette attached**
-	1. Raise an exception
-
-   **1 Pipette attached**
-	1. Check the pipette attached can pick the volume
-    	
-    	_Left pipette attached and min volume is > aVolume_
-		1. Return the left pipette
-      	
-      	_Right pipette attached and min volume is > aVolume_
-		1. Return the right pipette
-    	
-    	_Pipette attached < aVolume_
-    	1. Raise an exception
-
-   **2 pipettes attached**
-   1. Establish which pipette has the greater minimum volume
-   2. Check if any pipette can aspirate the volume
-   
-      _Both pipettes can aspirate aVolume_
-	  1. Return the greater minimum volume pipette
-	
-	  _One pipete can aspirate volume_
-	  1. Return that pipette
- 	
- 	  _None of the pipettes can aspirate volume_
-	  1. Raise an exception
 
 ## `position_dispense_aspirate_falcon15ml`
 
