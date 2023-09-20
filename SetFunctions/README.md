@@ -1056,6 +1056,10 @@ Opentrons OT-2
 1 input is needed:
 1. **vol_mixing** (_float_): volume of the tube that the heights are going to be returned
 
+   For example
+
+   	1000
+
 ### Output
 
 * List of 3 elements that represent the heights to mix according to the volume: the bottom, middle and top height to mix
