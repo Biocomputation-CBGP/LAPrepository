@@ -610,6 +610,7 @@ Opentrons OT-2
    For example:
    
        2000
+
 ### Output
 3 outputs:
 * **number_tubes** (_integer_): final number of tubes that are needed
@@ -630,10 +631,11 @@ Opentrons OT-2
 
 ### Summary of functioning
 1. Initializing the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_
-2. While loop checking that any of the tubes have more volume than the _vol_max_tube_
+2. Check that at least 1 reaction can fit in each tube
+3. While loop checking that any of the tubes have more volume than the _vol_max_tube_
 	1. Add 1 tube more
 	2. Update the values of the variables _number_tubes_, _reactions_per_tube_ and _volumes_tubes_ to add that extra tube
-3. Return the output variables
+4. Return the output variables
 
 ## `run_program_thermocycler`
 
@@ -648,7 +650,7 @@ Opentrons OT-2
 ### Requirements
 
 ### Input
-7 inputs are needed
+7 inputs are needed:
 1. **tc_mod** (_opentrons.protocol_api.module_contexts.ThermocyclerContext_)
 
    For example:
@@ -675,35 +677,36 @@ Opentrons OT-2
         | 45 | 30 | - | - |
         | 99 | 90 | 30 | End |
         | 72 | 300 | - | - |
-4. **lid_temperature** (_float_): Value that will determine the value of the lid temperature during all the temperature profile.
+3. **lid_temperature** (_float_): Value that will determine the value of the lid temperature during all the temperature profile.
 
    For example:
 		
        100
-5. **final_lid_state** (_boolean_): Value that determines if the lid of the module will be open (True) or closed (False) at the end of the temperature profile.
+4. **volume_sample** (_float_): maximum volume that any well of the labware in the _tc_mod_ contains, i.e., volume of the well that contains more liquid. 
+
+   For example:
+
+   	20
+5. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+6. **final_lid_state** (_boolean_): optional argument that determines if the lid of the module will be open (True) or closed (False) at the end of the temperature profile. If argument not provided will be assumed as False.
 
    For example:
 	    
        True
-6. **final_block_state** (_NaN | float_): Value that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile.
+7. **final_block_state** (_NaN | float_): optional argument that determines if the block temperature is set in a determined temperature after the performance of the temperature profile. If the value is NaN, the temperature block of the module will be deactivated. If this variable contains a number, the temperature block will be set as that value at the end of the profile. If argument not provided, will be assumed as a NaN value
 
    For example:
 		
 	   25
-7. **volume_sample** (_float_): volume of the well that contains more liquid.
-   
-   For example:
-		
-  	   20
-8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
-* Performance of a temperature profile
+* Performance of a temperature profile in the provided thermocycler
 
 ### Summary of functioning
-1. Set lid temperature
-2. Go through all rows of the table _profile_
+1. Check that all needed columns are in _program_
+2. Set lid temperature
+3. Go through all rows of the table _profile_
    1. Check the value of the column "Cycle Status"
       
       **Cycle Status is Start**
@@ -716,6 +719,12 @@ Opentrons OT-2
       2. Execute the cycle
       3. State the _cycle_ variable as False
       4. Continue to the next row of the data frame
+
+      **Cycle Status is -**
+      1. Pass to the next step
+         
+      **Cycle status is something else**
+      1. Raise an exception
    2. Check if the state of the variable _cycle_
       
       _cycle is True_
@@ -723,9 +732,9 @@ Opentrons OT-2
       
       _cycle is False_
       1. Execute the step with set_block_temperature
-3. Deactivate the lid
-4. If _final_lid_state_ is set as True, we open the lid
-5. If _final_block_state_ is not empty, the block temperature is set as its value. If is empty, the temperature block is deactivated.
+4. Deactivate the lid
+5. If _final_lid_state_ is set as True, open the lid of the module
+6. If _final_block_state_ is not empty, the block temperature is set as its value. If is empty, the temperature block is deactivated.
 
 ## `setting_labware`
 
