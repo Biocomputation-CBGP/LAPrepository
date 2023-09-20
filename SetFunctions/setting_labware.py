@@ -35,6 +35,8 @@ def setting_labware (number_labware, labware_name, positions, protocol, module =
 				break # It has set the labware so we can break from the loop of positions
 			except DeckConflictError:
 				continue
+			except ValueError: # This will be raised when a thermocycler is tried to set in a position where it cannot be and if the position does not exist
+				continue
 		
 		# Control to see if the labware has been able to load in some free space. This will be tested after trying all the positions
 		if labware_set:
