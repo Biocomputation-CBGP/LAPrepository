@@ -1037,7 +1037,7 @@ Opentrons OT-2
    _type_selection is not first, last or random_
    1. Raise an exception
 
-## `z_positions_mix`
+## `z_positions_mix_15eppendorf`
 
 ### Objective
 
