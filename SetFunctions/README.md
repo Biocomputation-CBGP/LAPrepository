@@ -829,7 +829,7 @@ The tracking of the number of reactions it is done only internally to the functi
 
 This funcion respects the pipette (s) states when calling them, meaning that if the pipette that is going to be used has a tip, it will not be dropped and pick another one, but that tip will be preserved and use until another pipette is choosen or the function finishes. As well, if a pipette which is not used has a tip, that one will not be dropped at any time.
 
-On the other hand, the final tip used in this function will be dropped
+On the other hand, the pipettes or pipettes used in this function will drop the tips at the end of this fucntion
 
 ### Tested systems
 
@@ -858,18 +858,27 @@ Opentrons OT-2
    For example:
    	
        [27, 27]
-5. **positions_final_tubes** (_list of opentrons.protocol_api.labware.Well_): Final destination of the transfer from _posiions_source_tubes_
+4. **positions_final_tubes** (_list of opentrons.protocol_api.labware.Well_): Final destination of the transfer from _posiions_source_tubes_
 
    For example:
 		
-	   [A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
-6. **reactions_final_tubes** (_list of integers_): Number of reactions of the volume _vol_transfer_reaction_ that need to be transferred to each tube from _positions_source_tubes_
+       [A1 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A2 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1, A3 of Opentrons 24 Tube Rack with Eppendorf 1.5 mL Safe-Lock Snapcap on 1]
+5. **reactions_final_tubes** (_list of integers_): Number of reactions of the volume _vol_transfer_reaction_ that need to be transferred to each tube from _positions_source_tubes_
    The elements of this list are expected to be integers, but no error will be raised if theye are float.
    
    For example:
    		
-       [18, 18, 18]
-8. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTiprack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
+       [18, 18, 18]			
+6. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
+
+    For example:
+
+       class Example():
+		def __init__ (self):
+			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
+   			self.pipR = P1000 Single-Channel GEN2 on right mount
+   			self.pipL = P20 Single-Channel GEN2 on left mount
+7. **user_variables** (_custom class_): script class with attributes APINameTipR (name of the tiprack associated with the right mount pipette), APINameTipL (name of the tiprack associated with the left mount pipette), startingTipPipR (the first tip that the right pipette should pick), startingTipPipL (the first tip that the left pipette should pick) and replaceTiprack (value that establish if needed to set a new tip rack if it will replace the tiprack, if set, or add one).
 
     For example:
 
@@ -880,17 +889,7 @@ Opentrons OT-2
                 	self.startingTipPipR = "A1"
                 	self.startingTipPipL = "B3"
    			self.replaceTiprack = True
-				
-9. **program_variables** (_custom class_):  script class with the attributes deckPositions (Dictionary with deck positions as keys and labware/module object as the value), the right pipette and the left pipette objects (opentrons.protocol_api.instrument_context.InstrumentContext)
-
-    For example:
-
-	   class Example():
-		 def __init__ (self):
-			self.deckPositions = {1: Opentrons 15 Tube Rack with Falcon 15 mL Conical on 1, 2: Armadillo 96 Well Plate 200 µL PCR Full Skirt on 2, 3:None}
-   			self.pipR = P1000 Single-Channel GEN2 on right mount
-   			self.pipL = P20 Single-Channel GEN2 on left mount
-10. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
+8. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
 
 ### Output
 
@@ -898,8 +897,12 @@ Opentrons OT-2
 
 ### Summary of functioning
 
-1. Initialize a pipette
-2. Loop through the _positions_final_tube_
+1. Check if _positions_source_tubes_ and _reactions_source_tubes_ have the same dimensions
+2. Check if _positions_final_tubes_ and _reactions_final_tubes_ have the same dimensions
+3. Establish the generator of the source tubes and the used one
+4. Check that the source tubes have enough reactions to transfer to the final tubes
+5. Check that there is at least 1 pipette to perform the transfers
+6. Loop through the _positions_final_tube_ and their reactions
    1. While looping until the reactions of the tube are 0
       1. Check if all the volume of the reactions in the tube can be transferred from the current tube of _positions_source_tube_
          
@@ -908,29 +911,27 @@ Opentrons OT-2
          2. Take the number of reactions we are going to transfer from the source tube in its corresponding element of _reactions_source_tubes_
          3. Set the number of reactions of the tube from _positions_final_tube_ as 0
 	 
-	     **It CANNOT be transferred**
+	 **It CANNOT be transferred**
     	 1. Calculate the volume that is going to be transferred
          2. Subtract the number of reactions in the source tube from the _reactions_final_tubes_ element corresponding to the final tube
-         3. Set the reactions of the _positions_final_tube_ element as 0
-   2. Set the optimal pipette for the volume that is going to be transferred
-   3. Check if the optimal pipette is the same as the pipette that was used last time and if they have a tip attached
+         3. Set the reactions of the _positions_source_tube_ element as 0
+      2. Set the optimal pipette for the volume that is going to be transferred and its tiprack and starting tip.
+      3. Check if the optimal pipette is the same as the pipette that was used last time and if they have a tip attached
 
-      _The optimal pipette and last pipette do not match, and the last pipette has a tip_
-      1. Last used pipette drop tip
-      2. Set the optimal pipette as the last pipette
-      3. Last pipette pick up tip with the function `check_tip_and_pick`
-      
-      _The optimal pipette and last pipette do not match, and the last pipette does not have a tip_
-      1. Set optimal pipette as last pipette
-      2. Last pipette pick up tip with the function `check_tip_and_pick`
-      
-      _The optimal pipette is the same as the last pipette, and it has a tip_
-      1. pass
-      
-      _The optimal pipette is the same as the last pipette, and it does not have a tip_
-      1. The optimal pipette pick up tip with the function `check_tip_and_pick`
-   5. Transfer the volume
-   6. If the source tube element in _reactions_source_tubes_ is 0, we set the source tube as the next element of _positions_source_tubes_
+	      _The optimal pipette is the same as the last pipette, and it does not have a tip_
+	      1. The optimal pipette pick up tip with the function `check_tip_and_pick`
+	         
+	      _The optimal pipette and last pipette do not match_
+	      1. Check if _pipette_use_ is None
+	         _pipette_use is None and optimal_pipette does not have a tip_
+	         1. pick up tip for optimal_pipette
+	         _pipette_use is not None and has a tip_
+		 1. _pipette_use_ drop tip
+	  	 2. if _optimal_pipette_ does not have a tip, it picks up a tip      
+      4. Transfer the volume
+      5. If the source tube element in _reactions_source_tubes_ is 0, we set the source tube as the next element of _positions_source_tubes_
+   2. Check that if it has gone out of the while loop the remaining reactions to transfer is not higher than 0
+7. Drop the tip of the last pipette that has been used if it has a tip
 
 ## `vol_distribute_2pips`
 
