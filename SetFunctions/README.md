@@ -933,12 +933,12 @@ Opentrons OT-2
    2. Check that if it has gone out of the while loop the remaining reactions to transfer is not higher than 0
 7. Drop the tip of the last pipette that has been used if it has a tip
 
-## `vol_distribute_2pips`
+## `vol_pipette_matcher`
 
 ### Objective
 A function with a set of 2 pipettes and a list of volumes will return the positions and volumes of the elements that each pipette should transfer or distribute
 
-In case the volume needed is 0, that position will not be in th final output
+In case the volume needed is 0, that position will not be in the final output
 
 ### Tested systems
 
@@ -946,8 +946,8 @@ Opentrons OT-2
 
 ### Requirements
 * `give_me_optimal_pipette` function
+
 ### Input
-volumes_distribute, positions_distribute, pip_r, pip_l
 4 inputs are needed:
 1. **volumes_distribute** (_list_): list of volumes to distribute, one element of the list per well.
 
@@ -978,12 +978,10 @@ volumes_distribute, positions_distribute, pip_r, pip_l
 * **pos_l** (_list_): positions associated with the elements in the list _vol_l_
 
 ### Summary of functioning
-1. Initiate the variables that we are going to return
-2. For loop that goes through the elements of the input _volumeS_distribute_
+1. Check that there is a pipette to perform the function
+2. Check that _positions_distribute_ and _volumes_distribute_ have the same dimensions
+3. For loop that goes through the elements _volumes_distribute_ and _positions_distribute_
    1. Check if the volume is 0. If it is, we go to the next element of the loop.
-      
-      **Volume is 0**
-      1. Go to the next element of the list
    2. Obtain the pipette that could transfer the volume using the function `give_me_optimal_pipette`
    3. Check the selected pipette's mount
       
@@ -994,7 +992,7 @@ volumes_distribute, positions_distribute, pip_r, pip_l
       _Pipette in left mount_
       1. Add the volume to the the _vol_l_ list
       2. Add the position that corresponds to that volume to the _pos_l_ list
-3. Return 4 objects: _vol_r_, _vol_l_, _pos_r_ and _pos_l_
+4. Return 4 objects: _vol_r_, _vol_l_, _pos_r_ and _pos_l_
 
 ## `wells_selection`
 
