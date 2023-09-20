@@ -740,7 +740,9 @@ Opentrons OT-2
 
 ### Objective
 
-A function that will set a determined number of the same labware in free slots. Those slots will also be determined by a variable given, and if the labware cannot be loaded in any slot, an exception will be raised.
+A function that will set a determined number of the same labware/module in free slots. Those slots will also be determined by a variable given, and if the labware cannot be loaded in any slot, an exception will be raised.
+
+Take in account that if the labware or module takes more than 1 position, the only position that will be returned will be the position where it is loaded.
 
 ### Tested systems
 
@@ -750,7 +752,7 @@ Opentrons OT-2
 * Error DeckConflictError from the package opentrons
 
 ### Input
-5 inputs are required
+6 inputs are required
 1. **number_labware** (_integer_): Number of slots that the labware set in _labware_name_ will be defined if possible.
 
    For example:
@@ -761,13 +763,14 @@ Opentrons OT-2
    For example:
    
        opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap
-3. **positions** (_dict_): Dictionary with the different slot places of the deck as keys and the values of the slot as values. If they are empty slots, the values should be None. Otherwise, the name of the labware that is occupying that slot.
+3. **positions** (_dict_): Dictionary with the different slot places of the deck as keys (names of the positions) and the values of the slot as values. If they are empty slots, the values should be None. Otherwise, the name of the labware that is occupying that slot. Slots that are not in this dictionary will not be checked.
 
    For example:
    
        {1: "opentrons_15_tuberack_falcon_15ml_conical",2: "armadillo_96_wellplate_200ul_pcr_full_skirt",3: None,4: "opentrons_96_tiprack_20ul"}
 4. **protocol** (_opentrons.protocol_api.protocol_context.ProtocolContext_)
-5. **label** (_None | string | list_): names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
+5. **module** (_boolean_): optional argument that will define if what is going to be loaded is a module (True) or a labware (False). If not provided, it will be assumed as False
+6. **label** (_None | string | list_): optional argument that will establish the names displayed in the final layout. The default value of this variable will be None, and no customized label will be set.
 
     For example:
 		
@@ -779,22 +782,34 @@ Opentrons OT-2
   For example:
 
        {3: biorad_96_wellplate_200ul_pcr}
+* If possible, the labwares or modules will be established in the layout
 
 ### Summary of functioning
 1. Set the items of _positions_ that have None as a value in a variable called _position_plates_
-2. For loop through the number of _number_labware_ established
+2. Check that, in case of a list of labels providede, there are as many as _number_labware_
+3. For loop through the number of _number_labware_ established
    1. The variable _labware_set_ is set as False
    2. Go through the _position_plates_
       1. Try to establish the labware with the set _label_
          
          **Successful load labware**
-	     1. Load labware with _label_
-     	 2. Add the labware and the position to the final output, _all_plates_
-         3.  Set _labware_set_ as True
-         4.  Break the for loop
+	     1. Check if it is a module or a labware
+     	    
+     	    _Module_
+            1. Load module with _label_
+            
+            _Labware_
+            1. Load module with _label_
+ 	     2. Add the labware/module and the position to the final output, _all_plates_
+         3. Set _labware_set_ as True
+         4. Break the for loop
 	     
-	     **DeckConflictError**
+         **DeckConflictError**
 	     1. Continue to the next available position of _position_plates_
+	 
+         **ValueError**
+	     1. Continue to the next available position of _position_plates_
+   
    3. Check if the variable _labware_set_ was established as True in the for loop
      
          _labware_set as false_
@@ -802,7 +817,7 @@ Opentrons OT-2
      
          _labware_set as true_
          1. Remove the position where the labware was established from _position_plates_
-3. Return the list _all_plates_ with the positions as keys and the labware as values
+4. Return the list _all_plates_ with the positions as keys and the labware as values
 
 ## `tube_to_tube_transfer`
 
