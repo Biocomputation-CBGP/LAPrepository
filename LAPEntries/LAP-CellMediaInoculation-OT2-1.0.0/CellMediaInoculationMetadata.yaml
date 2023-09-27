@@ -1,0 +1,73 @@
+---
+Keywords: Inoculation, High-throughput, Opentrons
+Script: 
+ name: ScriptPlateGenerationAndIncubation.py
+ title: Cell Inoculation in Different Media
+ version: 1.0.0
+ description: >
+  Creation of different media-sample combination from 1 or more source plates
+  with samples and 1 or more media to inoculate the samples
+ downloadURL: https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries/LAP-CellMediaInoculation-OT2-1.0.0
+ date: 01/07/2023
+Author:
+ name: Biocomputation Lab
+ institution: CBGP UPM-INIA
+ email: angel.goni@upm.es
+ web: https://biocomputationlab.com/
+Language:
+ name: python
+ version: 3.7.1
+ download: https://www.python.org/downloads/
+Platform:
+ name: Opentrons OT-2
+ versionAPI: 2.14
+Environment:
+ system: Linux
+ osVersion: 4.14.74
+Requirements:
+ - "opentrons >= 6.3.1"
+ - "pandas >= 0.25.3"
+ - "numpy >= 1.15.1"
+ - "openpyxl >= 3.1.2"
+ - "math"
+ - "random"
+Input:
+ nameFile: VariablesPlateIncubation
+ extension: XLSX
+ minNumberSheets: 3
+ GeneralVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - Name Source Plate
+   - Number of Source Plates
+   - Name Final Plate
+   - Volume of Sample to Transfer (uL)
+   - Name Medias
+   - Volume of Media to Transfer (uL)
+   - Name 15mL Tuberack
+ PipetteVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - Name Right Pipette (Multichannel)
+   - API Name Right Pipette TipRack
+   - Initial Tip Right Pipette
+   - Name Left Pipette (Singlechannel)
+   - API Name Left Pipette TipRack
+   - Initial Tip Left Pipette
+   - Replace Tipracks
+ PerPlateVariables:
+  columnNames:
+   - Variable Names
+  rowNames:
+   - Samples per plate
+   - Media(s) per plate
+   - First Well With Sample
+Comments: >
+ This protocol can only work with a single-channel pipette on the left mount
+ and a multi-channel pipette on the right mount of the opentrons robot.
+ The required packages need to be installed and the input file
+ need to be in the robot that is going to run this script.
