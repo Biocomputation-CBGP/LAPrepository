@@ -1,0 +1,79 @@
+---
+Keywords: Media dispensing, Sample merging, High-throughput, Opentrons
+Script: 
+ name: ScriptMergePlates.py
+ title: Colony N-plates Merging
+ version: 1.0.0
+ description: >
+  Sample transfer from 1 or more plates to less plates. This selection of samples is established and the
+  objective is to compact a number of plates in less final plates.
+  As well, these samples can be inoculated with 1 media as well
+ downloadURL: https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries/LAP-NplateMerging-OT2-1.0.0
+ date: 01/07/2023
+Author:
+ name: Biocomputation Lab
+ institution: CBGP UPM-INIA
+ email: angel.goni@upm.es
+ web: https://biocomputationlab.com/
+Language:
+ name: python
+ version: 3.7.1
+ download: https://www.python.org/downloads/
+Platform:
+ name: Opentrons OT-2
+ versionAPI: 2.14
+Environment:
+ system: Linux
+ osVersion: 4.14.74
+Requirements:
+ - "opentrons >= 6.3.1"
+ - "pandas >= 0.25.3"
+ - "numpy >= 1.15.1"
+ - "openpyxl >= 3.1.2"
+ - "math"
+ - "random"
+Input:
+ nameFile: VariablesMergeSamples
+ extension: XLSX
+ minNumberSheets: 3
+ GeneralVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Source Plate
+   - API Name Final Plate
+   - API Name Rack 15mL Falcon Reactives
+   - Volume Reactive Transfer (uL)
+   - Number of Source Plates
+   - Name File Final Map
+   - Well Start Final Plate
+ PipetteVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Right Pipette
+   - API Name Left Pipette
+   - API Name Tiprack Left Pipette
+   - API Name Tiprack Right Pipette
+   - Initial Tip Left Pipette
+   - Initial Tip Right Pipette
+   - Replace Tipracks
+ PerPlateVariables:
+  columnNames:
+   - Variable Names
+  rowNames:
+   - Name Sheet Map Identifiers
+   - Type of Sample Selection
+   - First Well Consider Take
+   - Number Samples Pick
+   - Volume Transfer Sample (uL)
+Output:
+ nameFile: Value in row 'Name File Final Map' 
+ extension: XLSX
+ content: Excel file in which every excel sheet is a map of the different samples in the final labware slot(s)
+Comments: >
+ This protocol can only work with single-channel pipettes,
+ the required packages need to be installed and the input file
+ need to be in the robot that is going to run this script
