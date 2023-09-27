@@ -1,0 +1,114 @@
+---
+Keywords: MoClo, High-throughput, Opentrons
+Script: 
+ name: ScriptMoCloConstructAssembly.py
+ title: Modular Cloning Constructs Assembly
+ version: 1.0.0
+ description: >
+  Mix of the DNA parts and the reactives needed to perform
+  a modular cloning parts mix and, optionally, the cassembly
+  with a temperature profile
+ downloadURL: https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries/LAP-MoCloAssembly-OT2-1.0.0
+ date: 01/07/2023
+Author:
+ name: Biocomputation Lab
+ institution: CBGP UPM-INIA
+ email: angel.goni@upm.es
+ web: https://biocomputationlab.com/
+Language:
+ name: python
+ version: 3.7.1
+ download: https://www.python.org/downloads/
+Platform:
+ name: Opentrons OT-2
+ versionAPI: 2.14
+Environment:
+ system: Linux
+ osVersion: 4.14.74
+Requirements:
+ - "opentrons >= 6.3.1"
+ - "pandas >= 0.25.3"
+ - "numpy >= 1.15.1"
+ - "openpyxl >= 3.1.2"
+ - "math"
+ - "random"
+Input:
+ nameFile: VariablesMoCloAssembly
+ extension: XLSX
+ minNumberSheets: 6
+ GeneralVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Final Plate
+   - API Name Labware Eppendorfs Reagents
+   - Name File Final Construct
+   - Well Start Final Labware
+   - API Name Labware DNA Constructs
+   - Number DNA Parts Plates
+ PipetteVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Right Pipette
+   - API Name Left Pipette
+   - API Name Tiprack Left Pipette
+   - API Name Tiprack Right Pipette
+   - Initial Tip Left Pipette
+   - Initial Tip Right Pipette
+   - Replace Tipracks
+ PerPlateVariables:
+  columnNames:
+   - Variable Names
+  rowNames:
+   - Name Map DNA Parts
+   - Number of Parts
+ ReactionVariables:
+  columnNames:
+   - Variable Names
+   - Value 
+  rowNames:
+   - Volume Acceptor Plasmid (uL)
+   - Volume Module Plasmid (uL)
+   - Volume Restriction Enzyme (uL)
+   - Volume Ligase (uL)
+   - Volume Buffer (uL)
+   - Volume ATP/Serum (uL)
+   - Volume Final Each Reaction (uL)
+   - Extra Pipetting Factor
+ ModuleVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - Presence Thermocycler
+   - Presence Heater-Shaker
+   - Final Open Lid
+   - Temperature Lid
+   - Hold Block Temperature After Profile
+   - RPM Heater-Shaker
+   - API Name Heater-Shaker Labware
+   - Pause Before Temperature Program
+   - Initial Thermocycle Block Temperature
+ Combinations:
+  columnNames:
+   - Name
+   - Acceptor Plasmid
+ TemperatureProfile:
+  columnNames:
+   - Temperature
+   - Time (s)
+   - Number of Cycles
+   - Cycle Status
+Output:
+ nameFile: Value in row 'Name File Final Construct' 
+ extension: XLSX
+ content: Excel file in which every excel sheet is a map of the different combinations in the final labware slots
+Comments: >
+ This protocol can only work with single-channel pipettes,
+ the required packages need to be installed and the input file
+ need to be in the robot that is going to run this script
+ The TemperatureProfile sheet is optional, only required if 'Presence Thermocycler'
+ is set as True.

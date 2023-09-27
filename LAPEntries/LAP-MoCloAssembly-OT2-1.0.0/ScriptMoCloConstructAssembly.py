@@ -3,7 +3,7 @@ Python script destined to OT-2
 This script performs a merge of samples from N source plates to a lower amount of final plates
 This script needs an excel file attached to perform the running
 For more info go to https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries and/or
-https://github.com/Biocomputation-CBGP/OT2/tree/main/GoldenStandardAssembly and/or
+https://github.com/Biocomputation-CBGP/OT2/tree/main/GoldenStandardAssembly
 """
 
 ## Packages needed for the running of the protocol
@@ -114,7 +114,7 @@ class UserVariables:
 				if self.startingTipPipL != self.startingTipPipR:
 					raise Exception("If the tipracks of the right and left mount pipettes are the same, the initial tip should be as well.")
 		
-		# Check all the boolean values and setting them
+		# Check all the boolean values and set them
 		if str(self.presenceHS).lower() == "true":
 			self.presenceHS = True
 		elif str(self.presenceHS).lower() == "false":
@@ -212,8 +212,12 @@ class UserVariables:
 		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
 			raise Exception("One or more of the introduced labwares or tipracks are not in the labware directory of the opentrons. Check for any typo of the api labware name.")
 		
+		# We need at least 1 source plate
+		if self.numberSourcePlates < 1:
+			raise Exception("We need at least 1 Number DNA Parts Plates to perform the protocol")
+
 		# Check if there is some value of the plates where it shouldnt in the per plate sheet
-		if len(self.samplesPerPlate) < (self.numberSourcePlates + 1) or len(self.nameSheetMapParts) < (self.numberSourcePlates + 1):
+		if len(self.samplesPerPlate) < (self.numberSourcePlates) or len(self.nameSheetMapParts) < (self.numberSourcePlates):
 			raise Exception("We need to have at least the same number of plate columns on the Sheet 'SamplesPlateVariables' as in 'Number DNA Parts Plates'")
 		if any(pd.isna(elem) == True for elem in self.samplesPerPlate[:self.numberSourcePlates]) or any(pd.isna(elem) == False for elem in self.samplesPerPlate[self.numberSourcePlates:]):
 			raise Exception("The values of 'Number of Parts' need to be as many as the 'Number DNA Parts Plates' and be in consecutive columns")
@@ -239,10 +243,15 @@ class UserVariables:
 			except ValueError: # Error that appears when the sheet 'name_map' does not exist in the excel file
 				raise Exception(f"The Sheet '{name_map}' does not exist in the file 'VariablesMoCloAssembly.xlsx'")
 			
+			# If the number of parts can actually fit the labware
+			if self.samplesPerPlate[index_map] > len(definition_source_plate["wells"]):
+				raise Exception(f"One of the values of 'Number of Parts' exceeds the number of wells in the labware '{self.APINameSamplePlate}'")
+
+
 			# If exists we will check it has same number of rows and columns at least, when labware is load we will check the names
 			map_rows, map_columns = map_content.shape
 			if map_rows != len(definition_source_plate["ordering"][0]) or map_columns != len(definition_source_plate["ordering"]):
-				raise Exception(f"The Sheet '{name_map}' needs to have the same columns and rows as the labware '{self.APINameSamplePlate}'. If there is no part in a position, leave cell empty")
+				raise Exception(f"The Sheet '{name_map}' needs to have the same columns and rows as the labware '{self.APINameSamplePlate}'. If there is no part in a position, leave cell empty.\nThe name of the rows and columns should be included in the sheet.")
 			
 			# Check that the number of values correspond to the one set in the variables
 			number_nan = map_content.isna().sum().sum()
@@ -259,11 +268,19 @@ class UserVariables:
 		if pd.Series(unflat_values).is_unique == False:
 			raise Exception("There is at least 1 element that is repeteated along the DNA Parts Maps and this protocol can only handle 1 tube per DNA part")
 		
+		# Check that the Names columns are not empty
+		if self.combinations_dataframe["Name"].isna().any():
+			raise Exception("The values of the column 'Name' cannot be left empty")
+		
+		# Check that the acceptor plasmid column is not empty
+		if self.combinations_dataframe["Acceptor Plasmid"].isna().any():
+			raise Exception("The values of the column 'Acceptor Plasmid' cannot be left empty")
+
 		# Check if any combination list name is repeated
 		if pd.Series(self.combinations_dataframe["Name"].values).is_unique == False:
 			raise Exception("Names on the Combinations Sheet have to be unique")
 		
-		# Check that there is no value on the map is not being used
+		# Check that there is no value on the map that is not being used
 		all_values_combinations = np.concatenate(self.combinations_dataframe.iloc[:,1:].values).tolist()
 		for element in unflat_values:
 			if element not in all_values_combinations:
@@ -273,9 +290,14 @@ class UserVariables:
 		if self.presenceTermo and len(self.combinations_dataframe["Name"].values) > len(definition_final_plate["wells"].keys()):
 			raise Exception("If the Thermocycler is present, only 1 final plate can be created and all of your combinations does not fit in the selected final labware")			
 		
+		# Check that all the reactives are actually numbers
+		if any(type(reactive) == str for reactive in [self.acceptorVolume, self.restrictionEnzymeVolume, self.ligaseVolume, self.bufferVolume, self.serumVolume, self.finalVolume, self.extraPipettingFactor, self.moduleVolume]):
+			raise Exception("All of the values in the sheet 'ReactionVariables' should not be strings, all of them must be numbers")
+
+		# Check that the factor is between 0 an 1
 		if self.extraPipettingFactor >= 1 or self.extraPipettingFactor < 0:
 			raise Exception("The variable 'Extra Pipetteing Factor' should be in range [0, 1)")
-		
+
 		# Check if the sum of the common reactives are greater than the final volume
 		# The check of common reactives + parts <= final volume is going to be done when the water volumes are calculated
 		if self.acceptorVolume + self.restrictionEnzymeVolume + self.ligaseVolume + self.bufferVolume + self.serumVolume > self.finalVolume:
@@ -290,14 +312,15 @@ class UserVariables:
 		return
 	
 class SettedParameters:
-	def __init__(self):
+	def __init__(self, deck_positions):
 		self.pipR = None
 		self.pipL = None
+		self.sameTipRack = None
 		self.samplePlates = {}
 		self.finalPlates = {}
 		self.reactiveWells = {}
 		self.mixWells = {"Reactions Per Tube":[], "Volumes":[], "Definition Liquid": None}
-		self.deckPositions = {key: None for key in range(1,12)}
+		self.deckPositions = {key: None for key in range(1,deck_positions)}
 		self.volREFactor = 0
 		self.volLigaseFactor = 0
 		self.volBufferFactor = 0
@@ -323,7 +346,7 @@ class SettedParameters:
 											  "Map Volumes":None,
 											  "Map Liquid Definitions":None}
 
-		self.combinations = generate_combinations_dict(user_variables.combinations_dataframe)
+		self.combinations = combinations_table_to_dict (user_variables.combinations_dataframe, "Name", "Acceptor Plasmid", name_key_col_isolated = "acceptor", name_key_rest_columns = "modules")
 		self.sumSamples = len(self.combinations)
 		
 		# Final Plate Variables
@@ -371,7 +394,12 @@ class SettedParameters:
 			# Establish all the variables set to the right pipette as none
 			user_variables.APINameTipR = None
 			user_variables.startingTipPipR = None
-			
+		
+		if user_variables.APINameTipR == user_variables.APINameTipL:
+			self.sameTipRack = True
+		else:
+			self.sameTipRack = False
+
 		if user_variables.presenceTermo:
 			self.tc_mod = protocol.load_module("thermocycler")
 			self.tc_mod.open_lid()
@@ -399,41 +427,56 @@ class MapLabware:
 		
 class NotSuitablePipette(Exception):
 	"Custom Error raised when there is no pipette that can transfer the volume"
+	def __init__(self, value):
+		message = f"Not a suitable pipette to aspirate/dispense {value}uL"
+		super().__init__(message)
 	pass
 
 # Functions definitions
 # ----------------------------------
 # ----------------------------------
 
-def setting_labware (number_labware, labware_name, positions, protocol, label = None):
+def setting_labware (number_labware, labware_name, positions, protocol, module = False, label = None):
 	"""
 	In this function we will set how many labwares we need of every category (source labwares, final, coldblocks, falcon tube racks, etc)
 	
-	This function will only set the labwares in the different slots of the deck, with not calculate how many we need,
-	this way we do not have to change this function and only change the setting_labware function from protocol to protocol
+	4 mandatory arguments and 2 optional 
 	"""
 	position_plates = [position for position, labware in positions.items() if labware == None] # We obtain the positions in which there are not labwares
 	all_plates = {}
+	if type(label) == list and len(label) != number_labware:
+		raise Exception("If the argument 'label' is a list as many names should be provided as the argument 'number_labware'")
 
 	for i in range (number_labware):
 		labware_set = False # Control variable
 		for position in position_plates:
 			try:
-				if label == None:
-					plate = protocol.load_labware(labware_name, position)
-				elif type(label) == str:
-					plate = protocol.load_labware(labware_name, position, label = f"{label} {i+1} Slot {position}")
-				elif type(label) == list:
-					plate = protocol.load_labware(labware_name, position, label = f"{label[i]} Slot {position}")
+				if not module: # Meaning that we are going to load labwares
+					if label == None:
+						plate = protocol.load_labware(labware_name, position)
+					elif type(label) == str:
+						plate = protocol.load_labware(labware_name, position, label = f"{label} {i+1} Slot {position}")
+					elif type(label) == list:
+						plate = protocol.load_labware(labware_name, position, label = f"{label[i]} Slot {position}")
+				else: # We are going to load modules
+					if label == None:
+						plate = protocol.load_module(labware_name, position)
+					elif type(label) == str:
+						plate = protocol.load_module(labware_name, position, label = f"{label} {i+1} Slot {position}")
+					elif type(label) == list:
+						plate = protocol.load_module(labware_name, position, label = f"{label[i]} Slot {position}")
+				# If it reaches this point the labware as been set
 				all_plates[position] = plate
 				labware_set = True
 				break # It has set the labware so we can break from the loop of positions
 			except DeckConflictError:
 				continue
+			except ValueError: # This will be raised when a thermocycler is tried to set in a position where it cannot be and if the position does not exist
+				continue
 		
 		# Control to see if the labware has been able to load in some free space. This will be tested after trying all the positions
 		if labware_set:
-			position_plates.remove(position) # We take from the lits the value that has been used or the last
+			position_plates.remove(position) # We take from the list the value that has been used or the last
 		else:
 			raise Exception(f"Not all {labware_name} have been able to be placed, try less samples or another combination of variables")
 
@@ -441,175 +484,196 @@ def setting_labware (number_labware, labware_name, positions, protocol, label = 
 
 def number_tubes_needed (vol_reactive_per_reaction_factor, number_reactions, vol_max_tube):
 	"""
-	Given a maximum volume of the tube (vol_max_tube), the volume of that reactive/reaction (vol_reactive_per_reaction_factor) and the total number of reactions (number_reactions)
-	this function will return the number of tubes needed for this reactive and how many reactions are filled in every tube
-	
-	This function does not garantee the lower number of tubes but it assures that everything can be picked with the pipettes that we have
-	
-	This function will be used mainly, sometimes exclusively, in setting_number_plates
+	Function that will return the number of tubes that is needed for a given number of reactions
+
+	3 mandatory arguments are needed for this function to work
 	"""
+
+	# Set initial values
+	number_tubes = 1
+	reactions_per_tube = [number_reactions]
+	volumes_tubes = [vol_reactive_per_reaction_factor*number_reactions]*number_tubes
 	
-	number_tubes = 1 # Initizialice the number of tubes
-	reactions_per_tube = [number_reactions] # Initialice the reactions per tube
-	volumes_tubes = [vol_reactive_per_reaction_factor*number_reactions]*number_tubes # Initialice the number of tubes
-	
+	# Check if it can be done
+	if vol_reactive_per_reaction_factor > vol_max_tube:
+		raise Exception(f"The volume of each reaction, {vol_reactive_per_reaction_factor}uL, is greater than the max volume of the tube, {vol_max_tube}uL")
+
 	while any(volume > vol_max_tube for volume in volumes_tubes): # If there is some volume that is greater than the max volume we are going to enter in the loop
 		number_tubes += 1 # We add one tube so the volume can fit in the tubes
 		
-		# Now we redistribute the reactions (and correspondant volume) to the tubes so it will be the most homogeneus way
+		# Now we redistribute the reactions (and volume) to the tubes so it will be the most homogeneus way
 		reactions_per_tube = [int(number_reactions/number_tubes)]*number_tubes
-		tubes_to_add_reaction = number_reactions%number_tubes
-		for i in range(tubes_to_add_reaction):
-			reactions_per_tube[i] += 1
+		tubes_to_add_reaction = number_reactions%number_tubes # This is the remainder of the division #reactions / #tubes so it can never be greater than #tubes
 		
+		for i in range(tubes_to_add_reaction): # We will add 1 reaction to every tube until there are no more reaction remainders
+			reactions_per_tube[i] += 1
+		# Adding one will make the volume of the tubes more homogeneous
+
 		# Calculate the new volumes
 		volumes_tubes = [vol_reactive_per_reaction_factor*number_reactions_tube for number_reactions_tube in reactions_per_tube]
 	
-	# When the volume can fit every tube (exit from th ewhile loop) we return the number of tubes and the reactions that will fit in every tube
+	# When the volume can fit every tube (exit from the while loop) we return the number of tubes and the reactions that will fit in every tube
 	return (number_tubes, reactions_per_tube, volumes_tubes)
 
 def generator_positions (labware_wells_name):
 	"""
-	Generator of the positions to transfer, it will give you the next element of a list every time it is called
+	Function that will return the next element everytime is called from a given list
 	"""
 	for well in labware_wells_name:
 		yield well
 
-def check_tip_and_pick (pipette_used, position_deck, variables_define_tiprack, protocol):
+def check_tip_and_pick (pipette_used, tiprack, position_deck, protocol, replace_tiprack = False, initial_tip = "A1", same_tiprack = False):
 	"""
-	This functions is used to pick tips and in case of need, replace the tiprack or add one to the labware
-	This way we add labwares in the process of the simulation and we do not need to calculate it a priori
-	
-	In the OT-App it will appear directly in the deck but it has been added with this function
+	Function that will pick a tip and if there is not a tip available it will define a new tip rack and pick one in case it is possible to establish
+	a new tip rack.
+	For that purpose it will need 7 arguments, 3 optional (replace_tiprack, initial_tip, same_tiprack) and 4 mandatory (pipette_used, tiprack, position_deck, protocol)
 	"""
-	# One future improvemnt of this function is to check if the pipettes use the same tipracks and add them to both pipettes, that way we will need less tipracks if they
-	# have the same tips associated, for exmaple, if we are using a 300 multi and single pipette
 	try:
 		pipette_used.pick_up_tip()
 		# When there are no tips left in the tiprack OT will raise an error
 	except OutOfTipsError:
-		if len(pipette_used.tip_racks) == 0:
-			position_deck = {**position_deck , **define_tiprack(pipette_used, position_deck, variables_define_tiprack, protocol)}
+		if len(pipette_used.tip_racks) == 0: # There are no tip racks attached to the pipette
+			# If it is possible a tiprack will be established
+			position_deck = {**position_deck , **define_tiprack (pipette_used, tiprack, position_deck, protocol, same_tiprack = same_tiprack)}
+			
 			# We establish now the starting tip, it will only be with the first addition, the rest will be establish that the first tip is in A1 directly
-			if pipette_used.mount == "right":
-				pipette_used.starting_tip = pipette_used.tip_racks[0][variables_define_tiprack.startingTipPipR]
-			elif pipette_used.mount == "left":
-				pipette_used.starting_tip = pipette_used.tip_racks[0][variables_define_tiprack.startingTipPipL]
-		else:
-			if variables_define_tiprack.replaceTiprack == False:
-				position_deck = {**position_deck , **define_tiprack(pipette_used, position_deck, variables_define_tiprack, protocol)}
-			else:
-				#Careful with this part if you are traspassing this script into jupyter because this will crash your jupyter (will wait until resume and it does not exist)
-				protocol.pause("Replace Empty Tiprack With A Full One And Press Resume In OT-APP")
-				pipette_used.reset_tipracks()
+			if same_tiprack and "right" in protocol.loaded_instruments.keys() and "left" in protocol.loaded_instruments.keys(): # Same tipracks
+				protocol.loaded_instruments["right"].starting_tip = pipette_used.tip_racks[0][initial_tip]
+				protocol.loaded_instruments["left"].starting_tip = pipette_used.tip_racks[0][initial_tip]
+			else: # Different tipracks
+				protocol.loaded_instruments[pipette_used.mount].starting_tip = pipette_used.tip_racks[0][initial_tip]
+			
+		else:# There is already a tiprack attached to the pipette 
+			if replace_tiprack == False: # A tip rack will be added to the layout in case it is possible
+				position_deck = {**position_deck , **define_tiprack (pipette_used, tiprack, position_deck, protocol, same_tiprack = same_tiprack)}
+			else: # The tip rack will be replaced by the one already placed
+				# Careful with this part if you are traspassing this script into jupyter because this will crash your jupyter (will wait until resume and it does not exist)
+				protocol.pause("Replace Empty Tiprack With A Full One And Press Resume In OT-App")
+				if same_tiprack and "right" in protocol.loaded_instruments.keys() and "left" in protocol.loaded_instruments.keys():
+					protocol.loaded_instruments["right"].reset_tipracks()
+					protocol.loaded_instruments["left"].reset_tipracks()
+				else:
+					pipette_used.reset_tipracks()
 		
 		#Finally, we pick up the needed tip        
 		pipette_used.pick_up_tip()
 	
 	return
 	
-def define_tiprack (pipette, position_deck, variables_define_tiprack, protocol):
+def define_tiprack (pipette, tiprack_name, position_deck, protocol, same_tiprack = False):
+	"""
+	Function that will define, if possible, a tip rack in the first position free that does not raise a deck conflict
+	and assigned it to the pipette.
+
+	In case that the right and left pipette have the same tiprack, menaing the same_tiprack variable is set as True,
+	the tip rack will be assigned to both pipettes
+
+	This function needs 4 mandatory arguments and 1 optional
+	"""
+
+	# First we find out how many positions are available
 	positions_free = [position for position, labware in position_deck.items() if labware == None]
 	
-	if pipette.mount == "right":
-		tiprack_name = variables_define_tiprack.APINameTipR
-	else:
-		tiprack_name = variables_define_tiprack.APINameTipL
-	
 	if len(positions_free) == 0:
-		raise Exception("There is not enough space in the deck for this protocol, try less samples")
+		raise Exception("There is not enough space in the deck for the tip rack needed")
 	
-	for position in positions_free:
+	for position in positions_free: # Loop in case there is a position that has deck conflicts but it can still be placed in another one
+		
 		try:
 			tiprack = protocol.load_labware(tiprack_name, position)
 			position_deck[position] = tiprack_name
-		except DeckConflictError:
+		except OSError:
+			raise Exception (f"The tip rack '{tiprack_name}' is not found in the opentrons namespace, check for typos or add it to the custom labware")
+		except DeckConflictError: # Continue to the next position
 			continue
 		
-		if variables_define_tiprack.APINameTipR == variables_define_tiprack.APINameTipL:
+		# Attach the tip rack to the right pipette(s)
+		if same_tiprack and "right" in protocol.loaded_instruments.keys() and "left" in protocol.loaded_instruments.keys():# Both tip racks are the same
 			protocol.loaded_instruments["right"].tip_racks.append(tiprack)
 			protocol.loaded_instruments["left"].tip_racks.append(tiprack)
 		else:
-			if pipette.mount == "right":
-				protocol.loaded_instruments["right"].tip_racks.append(tiprack)
-			elif pipette.mount == "left":
-				protocol.loaded_instruments["left"].tip_racks.append(tiprack)
+			protocol.loaded_instruments[pipette.mount].tip_racks.append(tiprack)
 		
 		# If it has reached this point it means that the tiprack has been defined
 		return {position:tiprack_name}
+	
+	# If it has reached this point it means that the tip rack has not been able to be defined
+	raise Exception(f"Due to deck conflicts, the tiprack '{tiprack_name}' has not been able to be placed. Try another combination of variables")
 
-def optimal_pipette_use (aVolume, pipette_r, pipette_l):
+
+def give_me_optimal_pipette (aVolume, pipette_r = None, pipette_l = None):
 	"""
-	Function that will return the optimal pipette to use for the volume that we want to handle.
-	
-	In case that it is a great volume (higher than the maximal volume of both pipettes) will return the pipette that will give the minimal quantity of movements
-	
-	If none of the pipettes attached can pick the volume (because it is too small) the function will raise an error
-	
-	For the correct functioning of this function at least 1 pipette should be attached to the OT, otherwise, the function will raise an error
+	Function that given a set of pipettes  will return the one more that will transfer the volume with less movements
+
+	This function requires 1 mandatory argument and 2 optional
 	"""
 
-	if pipette_r == None and pipette_l == None: #no pipettes attached
-		raise Exception("There is not a pippette attached")
+	if pipette_r == None and pipette_l == None: # No pipettes attached
+		raise Exception(f"There is not a pippette attached to aspirate/dispense {aVolume}uL")
 	
-	# First we look if one of them is the only option
-	elif pipette_r == None or pipette_l == None: # One mount is free, only need that the volume is more than the min of the pipette
-		if pipette_r == None and aVolume >= pipette_l.min_volume:
-			return pipette_l
-		elif pipette_l == None and aVolume >= pipette_r.min_volume:
-			return pipette_r
-		else: # One of them does not exist and the other one is not valid
-			raise NotSuitablePipette
-			
-	else: # Both of them are in the OT
-		# Define which has a bigger min volume so it can do the fewer moves to take the reactives or even distribute with fewer moves
-		if pipette_l.min_volume > pipette_r.min_volume:
-			max_pipette = pipette_l
-			min_pipette = pipette_r
-		else:
-			max_pipette = pipette_r
-			min_pipette = pipette_l
-		
+	# Look if one of them is the only option
+	elif pipette_r == None and aVolume >= pipette_l.min_volume: # One mount is free, only need that the volume is more than the min of the pipette
+		return pipette_l
+	
+	elif pipette_l == None and aVolume >= pipette_r.min_volume:
+		return pipette_r
+	
+	# Now we look if there are 2 and the most apropiate should be returned
+	elif pipette_r != None and pipette_l != None:
+		# Define if both of the pipettes can take the volume
 		if aVolume >= pipette_l.min_volume and aVolume >= pipette_r.min_volume:
-			if pipette_l == max_pipette:
+			if pipette_l.min_volume >= pipette_r.min_volume:
 				return pipette_l
 			else:
 				return pipette_r
-		elif aVolume >= pipette_l.min_volume and pipette_l == min_pipette:
+		# Not both of them can pick it, so it is a matter to figure out if 1 of them can do it
+		elif aVolume >= pipette_l.min_volume:
 			return pipette_l
-		elif aVolume >= pipette_r.min_volume and pipette_r == min_pipette:
+		elif aVolume >= pipette_r.min_volume:
 			return pipette_r
 		else: # None of the pipettes can hold that volume
-			raise NotSuitablePipette
-	return
-
-def run_program_thermocycler(tc_mod, program, lid_temperature, final_lid_state, final_block_state, volume_sample, protocol):
-	"""
-	Function that will read the csv file with the steps of the program and will perform it
-	in the thermocycler
-	the program is already the pd.DataFrame, because it has already been read and establish that the lid temperature is okay,
-	it exists, etc, i.e., control error of the file
-	"""
+			raise NotSuitablePipette(aVolume)
 	
-	# initialyze the state of the variable cycle that we will use to control if the step is a cycle or a step
+	else: # This will be the case if there is 1 pipette attached but it can take the volume
+		raise NotSuitablePipette(aVolume)
+
+def run_program_thermocycler (tc_mod, program, lid_temperature, volume_sample, protocol, final_lid_state = False, final_block_state = np.nan):
+	"""
+	Function that will read a table with the steps that the thermocycler should perform and other data needed to establish the steps in the thermocycler
+
+	This function will take 5 mandatory arguments and 2 optional
+	"""
+
+	# Error check
+	if not all(name in program.columns for name in ["Cycle Status", "Temperature", "Time (s)", "Number of Cycles"]):
+		raise Exception("The columns 'Temperature', 'Cycle Status', 'Time (s)' and 'Number of Cycles' need to be in the given table to perform this function")
+
+	# Initialyze the state of the variable cycle that we will use to control if the step is a cycle or a step
 	cycle = False
 	
-	# set the initail temperature of the lid
+	# Set the initial temperature of the lid
 	tc_mod.set_lid_temperature(lid_temperature)
-	for row in program.iterrows():
+	for row in program.iterrows(): # Go through all the table
 		# Check if it is a cycle or not, if it is a start of the end of it
-		# This will work because we have already donde contorl of the values of this column which only can be -, Start or End
-		if row[1]["Cycle Status"].lower() == "start":
-			profile_termo =[{"temperature":float(row[1]["Temperature"]),"hold_time_seconds":float(row[1]["Time (s)"])}]
+		if row[1]["Cycle Status"].lower() == "start": # Start of a set of steps that are goingto be a cycle
+			profile_termo =[{"temperature":float(row[1]["Temperature"]),"hold_time_seconds":float(row[1]["Time (s)"])}] # Add the step
 			cycle = True
-			continue
-		elif row[1]["Cycle Status"].lower() == "end":
+			continue # Go to next row
+		elif row[1]["Cycle Status"].lower() == "end": # The cycle has end so it is performed 
 			profile_termo.append({"temperature":float(row[1]["Temperature"]),"hold_time_seconds":float(row[1]["Time (s)"])})
+			if type(row[1]["Number of Cycles"]) == str:
+				raise Exception("A row where the value of the column 'Cycle Status' is End should have a number in the column 'Number of Cycles'")
+			elif type(row[1]["Number of Cycles"]) == float:
+				raise Exception("The value of 'Number of Cycles' needs to be an integer, it cannot be a float")
 			tc_mod.execute_profile(steps = profile_termo,
-								   repetitions = int(row[1]["Number of Cycles"]),
+								   repetitions = row[1]["Number of Cycles"],
 								   block_max_volume = volume_sample)
 			cycle = False
-			continue
+			continue # Go to next row
+		elif row[1]["Cycle Status"].lower() == "-": # Either an isolated step or a step in a cycle
+			pass
+		else:
+			raise Exception (f"The column 'Cycle Status' only accepts 3 values: Start, End or -")
 		
 		# Now we know if we have to add a step to the cycle or do the step directly
 		if cycle == True:
@@ -618,28 +682,32 @@ def run_program_thermocycler(tc_mod, program, lid_temperature, final_lid_state, 
 			tc_mod.set_block_temperature(row[1]["Temperature"],
 										 hold_time_seconds = float(row[1]["Time (s)"]),
 										 block_max_volume = volume_sample)
-	# Now we are going to put the block at one temeprature/open lid if it is establish like that
+	
+	
 	tc_mod.deactivate_lid()
 	
+	# Now we are going to put the block at one temeprature and open lid if it is establish like that
 	if final_lid_state:
 		tc_mod.open_lid()
 	
-	if pd.isna(final_block_state) == False:
+	if not pd.isna(final_block_state):
 		tc_mod.set_block_temperature(final_block_state,
 									 block_max_volume = volume_sample)
 	else:
 		tc_mod.deactivate_block()
+	
 	return
 
-def z_positions_mix (vol_mixing):
+def z_positions_mix_15eppendorf (vol_mixing):
 	"""
-	Function that will define the positions of mixing according to the volume of each tube of primer set
+	Function that will define the positions of mixing according to the volume of each eppendorf tube
 	
 	These heights have been manually measured for 1.5mL eppendorfs to attach z to aproximatelly the volume associated
 	
 	We will have 3 mixing heights at the end, but not neccessarilly different within each other
 	"""
 	
+	# Establish the manual measured z height
 	position_bottom = 1
 	position_100 = 6
 	position_100_250 = 9
@@ -664,160 +732,237 @@ def z_positions_mix (vol_mixing):
 		return [position_100, position_500, position_1000]
 	elif vol_mixing > 1250:
 		return [position_100, position_500, position_1250]
-	else:
-		pass
-	
-	return 
 
-def mixing_eppendorf_15 (location_tube, volume_tube, program_variables, user_variables, protocol):
+def mixing_eppendorf_15 (location_tube, volume_tube, volume_mixing, pipette, protocol):
 	"""
-	This is a function to perfrom an extensive mixing of every eppendorf which should be done before distributing the reactives along the final plates
-	
-	Mixing is one of the most crucial parts of this workflow and that is why theer is a function only for it
-	
-	This function will perform the mixing and will return warnings (in case that is needed) and the final pipette that has been used
-	"""
-	# This function is going to perform the mixing of the tubes in the coldblock (it is setted for the 1500ul eppendorf because the positions are done manually)
-	mastermix_mixing_volume_theory = volume_tube / 3
-	try:
-		aSuitablePippet_mixing = optimal_pipette_use(mastermix_mixing_volume_theory, program_variables.pipR, program_variables.pipL)
-		max_vol_pipette = aSuitablePippet_mixing.max_volume
-		if max_vol_pipette < mastermix_mixing_volume_theory:
-			volume_mixing = max_vol_pipette
-		else:
-			volume_mixing = mastermix_mixing_volume_theory
-			pass
-	except NotSuitablePipette: # If this happens it means that the the volume is too low to any of the pipettes
-		if program_variables.pipR.min_volume < program_variables.pipL.min_volume:
-			volume_mixing = program_variables.pipR.min_volume
-			aSuitablePippet_mixing = program_variables.pipR
-		else:
-			volume_mixing = program_variables.pipL.min_volume
-			aSuitablePippet_mixing = program_variables.pipL
+	Function that will perform the mixing of a 1.5mL eppendorf tube iwth a given pipette
 
-	if aSuitablePippet_mixing.has_tip:
-		pass
-	else:
-		if aSuitablePippet_mixing.mount == "right" and program_variables.pipL != None and program_variables.pipL.has_tip:
-			program_variables.pipL.drop_tip()
-		elif aSuitablePippet_mixing.mount == "left" and program_variables.pipR != None and program_variables.pipR.has_tip:
-			program_variables.pipR.drop_tip()
-		check_tip_and_pick (aSuitablePippet_mixing, program_variables.deckPositions, user_variables, protocol)
+	The pipette shoudl have a tip to perform this mixing
+
+	5 arguments are needed for this function
+	"""
+	# Check if the pipette has a tip
+	if not pipette.has_tip:
+		raise Exception(f"{pipette} has no tip attached to peform the function 'mixing_eppendorf_15'")
+
+	# Check if the given pipette can aspirate/dispense the volume
+	if pipette.min_volume > volume_mixing or pipette.max_volume < volume_mixing:
+		raise Exception(f"Volume of mixing, {volume_mixing}uL, should be a value between the {pipette} minimum and maximum aspiration/dispense volume which are {pipette.min_volume}uL and {pipette.max_volume}uL, respectively")
 	
-	# After calculating the mixing volume, choosing a pipette and picking up a tip we perform the mix
-	positions_mixing = z_positions_mix(volume_mixing) # This is the part that is customized for the 1500uL eppendorfs
+	# Check the positions in which the mixing is going to be performed
+	positions_mixing = z_positions_mix_15eppendorf (volume_tube) # This is the part that is customized for the 1500uL eppendorfs
 	
+	# Now we perform the mixing of the eppendorf tube
 	# We are going to mix 7 times at different heighs of the tube
-	aSuitablePippet_mixing.mix(7, volume_mixing, location_tube.bottom(z=positions_mixing[1])) 
-	aSuitablePippet_mixing.mix(7, volume_mixing, location_tube.bottom(z=positions_mixing[0])) 
-	aSuitablePippet_mixing.mix(7, volume_mixing, location_tube.bottom(z=positions_mixing[2]))
+	for position in positions_mixing:
+		pipette.mix(7, volume_mixing, location_tube.bottom(z = position)) 
 	
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -20, radius=0.7, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -20, radius=0.7, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -20, radius=0.7, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -20, radius=0.5, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -20, radius=0.5, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -20, radius=0.5, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -27, radius=0.3, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -27, radius=0.3, speed=30)
-	aSuitablePippet_mixing.touch_tip(location_tube,v_offset = -27, radius=0.3, speed=30)
+	for i in range(3):
+		pipette.touch_tip(location_tube,v_offset = -20, radius=0.7, speed=30)
+	for i in range(3):
+		pipette.touch_tip(location_tube,v_offset = -20, radius=0.5, speed=30)
+	for i in range(3):
+		pipette.touch_tip(location_tube,v_offset = -27, radius=0.3, speed=30)
+
 	# Now we are going to aspirate and dispense 3 times at different heights to mix a little bit more the content of the tube
 	for i in range(2):
-		aSuitablePippet_mixing.aspirate(volume_mixing, location_tube.bottom(z=positions_mixing[0]))
-		aSuitablePippet_mixing.dispense(volume_mixing, location_tube.bottom(z=positions_mixing[2]))
+		pipette.aspirate(volume_mixing, location_tube.bottom(z=positions_mixing[0]))
+		pipette.dispense(volume_mixing, location_tube.bottom(z=positions_mixing[2]))
 	for i in range(2):
-		aSuitablePippet_mixing.aspirate(volume_mixing, location_tube.bottom(z=positions_mixing[2]))
-		aSuitablePippet_mixing.dispense(volume_mixing, location_tube.bottom(z=positions_mixing[0]))
-	aSuitablePippet_mixing.blow_out(location_tube.center())
+		pipette.aspirate(volume_mixing, location_tube.bottom(z=positions_mixing[2]))
+		pipette.dispense(volume_mixing, location_tube.bottom(z=positions_mixing[0]))
 	
-	return aSuitablePippet_mixing
+	# Finally we blow out in the centre of the tube any rests that have been left in the tip
+	pipette.blow_out(location_tube.center())
+	
+	return
 
 def tube_to_tube_transfer (vol_transfer_reaction, positions_source_tubes, reactions_source_tubes, positions_final_tubes, reactions_final_tubes, program_variables, user_variables, protocol):
-	index_source_tube = 0 # Initial
-	if program_variables.pipL:
-		pipette_use = program_variables.pipL #Initial
-	else:
-		pipette_use = program_variables.pipR
-	for index_final_tube, final_tube in enumerate(positions_final_tubes):
-		while reactions_final_tubes[index_final_tube] > 0:
-			# calculate how much volume we need to pass from 1 tube to another
-			if reactions_source_tubes[index_source_tube] >= reactions_final_tubes[index_final_tube]:
-				volume_transfer = vol_transfer_reaction*reactions_final_tubes[index_final_tube]
-				reactions_source_tubes[index_source_tube] -= reactions_final_tubes[index_final_tube]
-				reactions_final_tubes[index_final_tube] = 0
-			else:
-				volume_transfer = vol_transfer_reaction*reactions_source_tubes[index_source_tube]
-				reactions_source_tubes[index_source_tube] = 0
-				reactions_final_tubes[index_final_tube] -= reactions_source_tubes[index_source_tube]
-				
-			# We choose the pipette that will transfer it
-			optimal_pipette = optimal_pipette_use(volume_transfer, program_variables.pipR, program_variables.pipL)
-			if optimal_pipette != pipette_use and pipette_use.has_tip:
-				pipette_use.drop_tip()
-				pipette_use = optimal_pipette
-				check_tip_and_pick (pipette_use, program_variables.deckPositions, user_variables, protocol)
-			elif optimal_pipette != pipette_use and pipette_use.has_tip == False:
-				pipette_use = optimal_pipette
-				check_tip_and_pick (pipette_use, program_variables.deckPositions, user_variables, protocol)
-			elif optimal_pipette == pipette_use and pipette_use.has_tip:
-				pass
-			elif optimal_pipette == pipette_use and pipette_use.has_tip == False:
-				check_tip_and_pick (pipette_use, program_variables.deckPositions, user_variables, protocol)
-			
-			# Transfer volume
-			pipette_use.transfer(float(volume_transfer), positions_source_tubes[index_source_tube], final_tube, new_tip = "never")
+	"""
+	Function that will transfer from n-tubes to m-tubes a volume in relation with the reactions.
 
-			# Define the source tube
-			if reactions_source_tubes[index_source_tube] == 0:
-				index_source_tube += 1
+	As well, if the pipettes need to be changed to transfer the volume, they will be changed
+
+	If there is a tip attached to the pipette or pipettes, it will be used but at the end it will be dropped
+	"""
+
+	# Make sure that we have as many reactions elements as position elements for both source and final
+	if len(positions_source_tubes) != len(reactions_source_tubes):
+		raise Exception("The length of the lists source tube positions and source tubes reactions should be the same")
+	
+	if len(positions_final_tubes) != len(reactions_final_tubes):
+		raise Exception("The length of the lists final tube positions and final tubes reactions should be the same")
+	
+	# Initialize the source tube
+	source_tubes = generator_positions (list(map(lambda x, y:[x,y], positions_source_tubes, reactions_source_tubes)))
+	current_source_tube = next(source_tubes) # It will return a touple (position, reactions)
+
+	# Make sure that the transfer can be done
+	if sum(reactions_source_tubes) < sum(reactions_final_tubes):
+		raise Exception(f"The source tubes have a total of {sum(reactions_source_tubes)} reactions and the final tubes need {sum(reactions_final_tubes)}, the transfer cannot be done")
+
+	if not program_variables.pipL and not program_variables.pipR:
+		raise Exception("There are no pipettes attached in the robot. At least 1 is needed to perform the function 'tube_to_tube_transfer'")
+
+	pipette_use = None #Initial
+
+	# Find out if the tipracks are the same for later purposes
+	if user_variables.APINameTipR == user_variables.APINameTipL:
+		tipracks_same = True
+	else:
+		tipracks_same = False
+
+	for final_tube, reactions_tube in zip(positions_final_tubes, reactions_final_tubes): # Go through the destination tubes
+		while reactions_tube > 0:
+			# Calculate how much volume we need to pass from 1 tube to another
+			if current_source_tube[1] >= reactions_tube: # The current source tube has enough volume
+				volume_transfer = vol_transfer_reaction*reactions_tube
+				current_source_tube[1] -= reactions_tube
+				reactions_tube = 0
+			else: # more than 1 tube is needed to transfer the required volume
+				volume_transfer = vol_transfer_reaction*current_source_tube[1]
+				reactions_tube -= current_source_tube[1]
+				current_source_tube[1] = 0
+			
+			# We choose the pipette that will transfer it. It can change between one tube and another one, that is why we check if it is the same one
+			optimal_pipette = give_me_optimal_pipette (volume_transfer, program_variables.pipR, program_variables.pipL)
+			
+			# Find out the tiprack associated to the optimal_pipette
+			# Also the first tip in case this is the first time the pipette is used
+			if optimal_pipette.mount == "right":
+				tiprack = user_variables.APINameTipR
+				first_tip = user_variables.startingTipPipR
+			else:
+				tiprack = user_variables.APINameTipL
+				first_tip = user_variables.startingTipPipL
+
+			# We find out if the optimal pipette has a tip and it is the same pipette as the last one
+			if optimal_pipette == pipette_use:
+				if pipette_use.has_tip == False:
+					check_tip_and_pick (optimal_pipette, tiprack, program_variables.deckPositions, protocol, replace_tiprack = user_variables.replaceTiprack, initial_tip = first_tip, same_tiprack = tipracks_same)
+			else: # The last pipette used and the current one are different
+				if pipette_use == None and optimal_pipette.has_tip == False: # This will be the case at the beginning of this function
+					check_tip_and_pick (optimal_pipette, tiprack, program_variables.deckPositions, protocol, replace_tiprack = user_variables.replaceTiprack, initial_tip = first_tip, same_tiprack = tipracks_same)
+				elif pipette_use != None and pipette_use.has_tip: # The previously used pipette has a tip
+					pipette_use.drop_tip()
+					if not optimal_pipette.has_tip:
+						check_tip_and_pick (optimal_pipette, tiprack, program_variables.deckPositions, protocol, replace_tiprack = user_variables.replaceTiprack, initial_tip = first_tip, same_tiprack = tipracks_same)
+					
+			# Establish the optimal pipette as the one that is going to be used
+			pipette_use = optimal_pipette
+
+			# Transfer volume
+			pipette_use.transfer(float(volume_transfer), current_source_tube[0], final_tube, new_tip = "never")
+
+			# In case the source tube has no volume, we go to the next one
+			if current_source_tube[1] == 0:
+				try:
+					current_source_tube = next(source_tubes)
+				except StopIteration: # This is meant for the last tube
+					break # If there were a pass this would be an infinite while
+
+		if reactions_tube > 0: # The function should not get out of the while loop without the value reactions_tube reaching out 0
+			raise Exception ("Something went wrong in the function 'tube_to_tube_transfer'")	
+
+	# After moving the volumes from the tubes to tubes we drop the tip
 	if pipette_use.has_tip:
 		pipette_use.drop_tip()
 	
 	return
 
-def generate_combinations_dict(pd_combination):
-	combination_dict = {}
-	list_names = list(pd_combination["Name"].values)
-	for name_combination in list_names:
-		elements_row = [element for element in pd_combination.loc[pd_combination["Name"] == name_combination].values[0][1:] if not pd.isna(element)]
-		combination_dict[name_combination] = {"acceptor":elements_row[0], "modules":elements_row[1:]}
+def combinations_table_to_dict (table, column_key, column_isolated, name_key_col_isolated = "isolatedCol", name_key_rest_columns = "restCol"):
+	"""
+	Function that will take a table and turn it into a dictionary in which 1 column will be the key of the items and the values will be another dictionary.
+	In that items value will have 2 items, one that is going to be the value sof one column and another one that will be the values of the rest of the columns
+
+	It will return something similar to {column_key_value:{name_key_col_isolated:column_isolated_value, name_key_rest_columns:[value_col1, value_col2, ...]}, ...}
+	
+	This function needs 3 mandatory arguments and 2 optional
+	"""
+	# Error control
+	if column_key not in table.columns:
+		raise Exception(f"The column {column_key}, the one that will give the key value of the items, does not exist in the pandas dataframe provided")
+	if column_isolated not in table.columns:
+		raise Exception(f"The column {column_isolated}, which will be 1 of the elements of the items, does not exist in the pandas dataframe provided")
+	
+	if table[column_key].duplicated().any():
+		raise Exception(f"The column {column_key} of the dataframe needs to have unique values, it cannot have duplicated values")
+	
+	combination_dict = {} # Initial
+	list_keys = list(table[column_key].values)
+
+	for name_row in list_keys: # Go through all the rows of the given table
+		# Set the value of the name and the isolated column
+		combination_dict[name_row] = {name_key_col_isolated: table.loc[table[column_key] == name_row, column_isolated].values[0], name_key_rest_columns:[]}
+		row_name = table[table[column_key] == name_row]
+		combination_dict[name_row][name_key_rest_columns] = [element for element in row_name.loc[:,~row_name.columns.isin([column_key,column_isolated])].values[0] if not pd.isna(element)]
 	return combination_dict
 
 def find_well_by_value (value, possible_labwares):
 	"""
-	This labware should have the map of the labwares where the value should be looked for and the position where that labware is
-	
-	This function will only return the first well with that value
-	
-	If it doesnt find the value in the labware it will return None
-	"""
-	for possible_labware in possible_labwares.values():
-		cell_pd_value = possible_labware["Map Names"][possible_labware["Map Names"].isin([value])].stack().index # stack() returns a pandas.Series in which the indexes are the (row, column) of the cells that the value is
-		if len(cell_pd_value) == 0:
-			continue
-		if len(cell_pd_value) > 1:
-			raise Exception(f"The DNA Part {value} is in the labware {possible_labware['Label']} more than once")
-		else:
-			well_value = str(cell_pd_value[0][0])+str(cell_pd_value[0][1])
-			return possible_labware["Opentrons Place"][well_value]
-	raise Exception(f"{value} is not in the provied Maps")
+	Function that will read a table of names and a table of positions and will return a list of the well(s) in the labware that
+	the value given correspond in the maps (tables)
 
-def vol_distribute_2pips (volumes_distribute, positions_distribute, pip_r, pip_l):
+	The function needs 2 arguments to work
+	"""
+	wells_value = []
+
+	for possible_labware in possible_labwares.values(): # Go through the given labwares
+		cell_pd_value = possible_labware["Map Names"][possible_labware["Map Names"].isin([value])].stack().index # stack() returns a pandas.Series in which the indexes are the (row, column) of the cells that the value is True
+		
+		if len(cell_pd_value) == 0: # The value is not in this map, go to the next one
+			continue
+		
+		for well in cell_pd_value: # Go through all the cells that have value
+			well_value = str(well[0])+str(well[1])
+			# See if that cell actually exists in the labware
+			try:
+				wells_value.append(possible_labware["Opentrons Place"][well_value])
+			except KeyError:
+				raise Exception(f"The value '{value}' has been found in the map cell '{well_value}' but that well does not exist in the labware {possible_labware['Opentrons Place']}")
+	
+	if len(wells_value) == 0:
+		raise Exception(f"The value '{value}' cannot be found in the provied possible_labwares")
+	
+	return wells_value
+
+def vol_pipette_matcher (volumes_distribute, positions_distribute, pip_r, pip_l):
+	"""
+	Function that taking 2 pipettes and a list of volumes it established which volume should be transfered with
+	which pipette. All of those volumes are matched with a location
+
+	4 arguments are needed for the function. The arguments that correspond to pip_r and pip_l can be None, but
+	if both of them are None an exception will be raised
+	"""
+	
+	# Initiate the variables that are going to be returned
 	vol_r = []
 	pos_r = []
 	vol_l = []
 	pos_l = []
-	for index_position, volume_transfer in enumerate(volumes_distribute):
+
+	# Error control
+	if not pip_r and not pip_l:
+		raise Exception("There are no pipettes attached to perform the function 'vol_pipette_matcher'")
+
+	if len (volumes_distribute) != len (positions_distribute):
+		raise Exception("The lists representing the positions and volumes to distribute need to be of equal length")
+
+	# Go through all the volumes to define which pipette should transfer it
+	for volume_transfer, position in zip (volumes_distribute, positions_distribute):
+		# No pipette is needed to transfer that volume
 		if volume_transfer == 0:
 			continue
 		
-		selected_pipette = optimal_pipette_use(volume_transfer, pip_l, pip_r)
+		selected_pipette = give_me_optimal_pipette (volume_transfer, pip_l, pip_r)
+
 		if selected_pipette.mount == "right":
 			vol_r.append(volume_transfer)
-			pos_r.append(positions_distribute[index_position])
+			pos_r.append(position)
 		else:
 			vol_l.append(volume_transfer)
-			pos_l.append(positions_distribute[index_position])
+			pos_l.append(position)
+
 	return vol_r, pos_r, vol_l, pos_l
 
 # Body of the Program
@@ -889,21 +1034,21 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 		user_variables = UserVariables(excel_variables.get("GeneralVariables"), excel_variables.get("PerPlateVariables"), excel_variables.get("PipetteVariables"),excel_variables.get("ReactionVariables"),excel_variables.get("ModuleVariables"),excel_variables.get("Combinations"))
 
 	user_variables.check(protocol)
-	program_variables = SettedParameters()
+	program_variables = SettedParameters(len(protocol.deck))
 	program_variables.assign_variables(user_variables, protocol)
 	
 	# Let's do the check of volumes that can be picked by the set pipettes, this could have been done before because we didnt have the pipettes
 	try:
 		if user_variables.restrictionEnzymeVolume + user_variables.ligaseVolume + user_variables.bufferVolume + user_variables.serumVolume > 0:
-			optimal_pipette_use(user_variables.restrictionEnzymeVolume + user_variables.ligaseVolume + user_variables.bufferVolume + user_variables.serumVolume, program_variables.pipR, program_variables.pipL)
+			give_me_optimal_pipette (user_variables.restrictionEnzymeVolume + user_variables.ligaseVolume + user_variables.bufferVolume + user_variables.serumVolume, program_variables.pipR, program_variables.pipL)
 	except NotSuitablePipette:
 		raise Exception("Reactive mix volume cannot be picked by any of the set pipettes")
 	
 	try:
 		if user_variables.acceptorVolume > 0:
-			optimal_pipette_use(user_variables.acceptorVolume, program_variables.pipR, program_variables.pipL)
+			give_me_optimal_pipette (user_variables.acceptorVolume, program_variables.pipR, program_variables.pipL)
 		if user_variables.moduleVolume > 0:
-			optimal_pipette_use(user_variables.moduleVolume, program_variables.pipR, program_variables.pipL)
+			give_me_optimal_pipette (user_variables.moduleVolume, program_variables.pipR, program_variables.pipL)
 	except NotSuitablePipette:
 		raise Exception("Either the volume of the acceptor or the volume of the module cannot be picked by set pipettes")
 	
@@ -922,28 +1067,21 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 		program_variables.mixWells["Positions"] = []
 		program_variables.mixWells["Definition Liquid"] = protocol.define_liquid(name = "Mix Tube", description = "Mix of recatives MoClo Assembly Reaction. Leave empty!", display_color = "#d3cfcf")
 		
-		if user_variables.presenceTermo:
-			possible_positions = [1, 6] # This are the only positions we can put the HS if the Thermocycler is present
-		else:
-			possible_positions = [10, 1, 3] # This order is put on purpose because the position 10 gives the less deck conflict positions
-		
 		number_hs = math.ceil(number_tubes_mix_hs/number_wells_labware)
+		
+		# You cannot put the HS in some positions, even if the opentrons app doesnt raise errors
+		possible_positions_HS = {key: program_variables.deckPositions[key] for key in [1, 3, 4, 6, 7, 10]}
 
-		for position in possible_positions:
-			try:
-				labware_hs = protocol.load_module('heaterShakerModuleV1', position)
-				labware_hs.close_labware_latch()
-				labware_hs.load_labware(user_variables.APINameLabwareHS, label = f"Eppendorf Rack with Mix on Slot {position}")
-				program_variables.deckPositions[position] = "Heater Shaker"
-				program_variables.hs_mods[position] = labware_hs
-				number_hs -= 1
-			except DeckConflictError:
-				continue
+		# Establish the hs_mod if possible
+		hs_mods = setting_labware(number_hs, "heaterShakerModuleV1", possible_positions_HS, protocol, module = True)
+
+		for position, hs_mod in hs_mods.items():
+			hs_mod.close_labware_latch()
+			hs_mod.load_labware(user_variables.APINameLabwareHS, label = f"Eppendorf Rack with Mix on Slot {position}")
+			program_variables.deckPositions[position] = "Heater Shaker"
+			program_variables.hs_mods[position] = hs_mod
 			
-			if number_hs == 0:
-				break
-			
-		# Set the volume sof the mixes in case the HS is present
+		# Set the volumes of the mixes in case the HS is present
 		wells_hs = []
 		for hs in list(program_variables.hs_mods.values()):
 			wells_hs += hs.labware.wells()
@@ -953,6 +1091,7 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 			well_tube_eppendorf = next(generator_wells_hs)
 			program_variables.mixWells["Positions"].append(well_tube_eppendorf)
 			well_tube_eppendorf.load_liquid(liquid = program_variables.mixWells["Definition Liquid"],volume = 0)
+	
 	# Setting the Labware that we already now how many of them we have
 	# Source plates
 	labels = []
@@ -1040,6 +1179,7 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 			for column in program_variables.samplePlates[index_labware]['Map Names'].columns:
 				if not pd.isna(program_variables.samplePlates[index_labware]['Map Names'].loc[row][column]):
 					labware[1].wells_by_name()[f"{row}{column}"].load_liquid(liquid = program_variables.samplePlates[index_labware]['Map Liquid Definitions'].loc[row,str(column)], volume = math.ceil(program_variables.samplePlates[index_labware]['Map Volumes'].loc[row,str(column)]))	
+	
 	# Final Plates
 	if user_variables.presenceTermo:
 		program_variables.tc_mod.load_labware(user_variables.APINameFinalPlate, label = "Final Plate with Combinations Slot 7")
@@ -1081,7 +1221,7 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 		program_variables.mixWells["Definition Liquid"] = protocol.define_liquid(name = "Mix Tube", description = "Mix of recatives MoClo Assembly Reaction. Leave Empty!", display_color = "#d3cfcf")
 	
 	# Last, we need to calculate the ammount of water we need to transfer to each well and the sum to kjnow the tubes
-	# We need to calculate it in anouther way, not with number_tubes_needed because it is not an uniform ammoutn of water
+	# We need to calculate it in anouther way, not with number_tubes_needed because it is not an uniform ammount of water
 	volume_every_well = []
 	for combination_name, combination in program_variables.combinations.items():
 		volume_with_modules = program_variables.volTotal + user_variables.acceptorVolume + user_variables.moduleVolume*(len(combination["modules"]))
@@ -1128,7 +1268,7 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 	
 	# Set the number of tubes in the coldblock
 	number_coldblocks = math.ceil(total_number_tubes/len(labware_context.get_labware_definition(user_variables.APINameEppendorfPlate)["wells"]))
-	coldblocks = setting_labware(number_coldblocks, user_variables.APINameEppendorfPlate, dict(sorted(program_variables.deckPositions.items(),reverse=True)), protocol, label = "Reagents") # We do the inverse deckPositions because it is less likely to have deck conflict error
+	coldblocks = setting_labware(number_coldblocks, user_variables.APINameEppendorfPlate, dict(sorted(program_variables.deckPositions.items(), reverse=True)), protocol, label = "Reagents") # We do the inverse deckPositions because it is less likely to have deck conflict error
 	program_variables.deckPositions = {**program_variables.deckPositions , **coldblocks}
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Set the places of the reagents and fill the dictionaries of the different kind of labwares
@@ -1176,35 +1316,43 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 	
 	for index_tube, tube_water in enumerate(program_variables.reactiveWells["Water"]["Positions"]):
 		# First, let's find the volumes that we have to distribute with the 2 pipettes
-		volWaterPipR, posWaterPipR, volWaterPipL, posWaterPipL = vol_distribute_2pips(program_variables.reactiveWells["Water"]["Volumes Per Tube"][index_tube], wells_distribute_free[well_start:well_start+len(program_variables.reactiveWells["Water"]["Volumes Per Tube"][index_tube])], program_variables.pipR, program_variables.pipL)
+		volWaterPipR, posWaterPipR, volWaterPipL, posWaterPipL = vol_pipette_matcher (program_variables.reactiveWells["Water"]["Volumes Per Tube"][index_tube], wells_distribute_free[well_start:well_start+len(program_variables.reactiveWells["Water"]["Volumes Per Tube"][index_tube])], program_variables.pipR, program_variables.pipL)
 		
 		well_start += len(program_variables.reactiveWells["Water"]["Volumes Per Tube"][index_tube])
 		
 		position_tube = program_variables.reactiveWells["Water"]["Positions"][index_tube]
 		
+		# Define last_pipette_used tipracks
+		if last_pipette_used.mount == "right":
+			tiprack = user_variables.APINameTipR
+			starting_tip = user_variables.startingTipPipR
+		else:
+			tiprack = user_variables.APINameTipL
+			starting_tip = user_variables.startingTipPipL
+
 		# Transfer with the last pipette if there is some position to distrtiibute with it
 		# This part has a lot of optimizing, I think the program could be easier in this part
 		if last_pipette_used == program_variables.pipR and posWaterPipR:
 			if not last_pipette_used.has_tip:
-				check_tip_and_pick(last_pipette_used, program_variables.deckPositions, user_variables, protocol)
+				check_tip_and_pick(last_pipette_used, tiprack, program_variables.deckPositions, protocol, initial_tip = starting_tip, replace_tiprack = user_variables.replaceTiprack, same_tiprack = program_variables.sameTipRack)
 			last_pipette_used.distribute(volWaterPipR, position_tube, posWaterPipR, new_tip = "never", touch_tip = True, disposal_volume = 0)
 		elif last_pipette_used == program_variables.pipL and posWaterPipL:
 			if not last_pipette_used.has_tip:
-				check_tip_and_pick(last_pipette_used, program_variables.deckPositions, user_variables, protocol)
+				check_tip_and_pick(last_pipette_used, tiprack, program_variables.deckPositions, protocol, initial_tip = starting_tip, replace_tiprack = user_variables.replaceTiprack, same_tiprack = program_variables.sameTipRack)
 			last_pipette_used.distribute(volWaterPipL, position_tube, posWaterPipL, new_tip = "never", touch_tip = True, disposal_volume = 0)
 			
 		# Transfer with the other pipette
 		if last_pipette_used == program_variables.pipR and posWaterPipL:
 			if last_pipette_used != None and last_pipette_used.has_tip:
 				last_pipette_used.drop_tip()
-			check_tip_and_pick(program_variables.pipL, program_variables.deckPositions, user_variables, protocol)
+			check_tip_and_pick(program_variables.pipL, user_variables.APINameTipL,program_variables.deckPositions, protocol, initial_tip = user_variables.startingTipPipL, replace_tiprack = user_variables.replaceTiprack, same_tiprack = program_variables.sameTipRack)
 			last_pipette_used = program_variables.pipL
 			last_pipette_used.distribute(volWaterPipL, position_tube, posWaterPipL, new_tip = "never", touch_tip = True, disposal_volume = 0)
 		elif last_pipette_used == program_variables.pipL and posWaterPipR:
 			if last_pipette_used != None and last_pipette_used.has_tip:
 				last_pipette_used.drop_tip()
 			last_pipette_used = program_variables.pipR
-			check_tip_and_pick(program_variables.pipR, program_variables.deckPositions, user_variables, protocol)
+			check_tip_and_pick(program_variables.pipR, user_variables.APINameTipR, program_variables.deckPositions, protocol, initial_tip = user_variables.startingTipPipR, replace_tiprack = user_variables.replaceTiprack, same_tiprack = program_variables.sameTipRack)
 			last_pipette_used.distribute(volWaterPipR, position_tube, posWaterPipR, new_tip = "never", touch_tip = True, disposal_volume = 0)
 	
 	# We drop the tip of the last used pipette because we are goiing to transfer the rest of the reactives
@@ -1250,7 +1398,15 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 	# Mix and Distribute Sets
 	# We are going to use "wells_distribute_free" because it is the same wells that we need to distribute the mix
 	if program_variables.volTotal > 0:
-		optimal_pipette = optimal_pipette_use(program_variables.volTotal, program_variables.pipR, program_variables.pipL)
+		optimal_pipette = give_me_optimal_pipette (program_variables.volTotal, program_variables.pipR, program_variables.pipL)
+
+		if optimal_pipette.mount == "right":
+			tiprack = user_variables.APINameTipR
+			starting_tip = user_variables.startingTipPipR
+		else:
+			tiprack = user_variables.APINameTipL
+			starting_tip = user_variables.startingTipPipL
+
 		wells_distribute_mix = wells_distribute_free[:]
 		for index, tube in enumerate(program_variables.mixWells["Positions"]):
 			if user_variables.presenceHS == True:
@@ -1259,17 +1415,35 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 				protocol.delay(seconds=15)
 				program_variables.hs_mods[int(str(tube).split(" ")[-1])].deactivate_shaker()
 				if optimal_pipette.has_tip == False:
-					check_tip_and_pick (optimal_pipette, program_variables.deckPositions, user_variables, protocol)
+					check_tip_and_pick (optimal_pipette, tiprack, program_variables.deckPositions, protocol, initial_tip = starting_tip, same_tiprack = program_variables.sameTipRack, replace_tiprack = user_variables.replaceTiprack)
 				optimal_pipette.distribute(float(program_variables.volTotal), tube, wells_distribute_mix[:program_variables.mixWells["Reactions Per Tube"][index]], new_tip="never", disposal_volume=0)
 			
 			else:
 				# Mix it with a pipette
-				last_pipette = mixing_eppendorf_15(tube, program_variables.volTotalFactor*program_variables.sumSamples, program_variables, user_variables, protocol)
-				if optimal_pipette == last_pipette:
+				# First we find out what is the mixing volume and the pipette to mix
+				vol_mixing = program_variables.mixWells["Volumes"][index] / 3
+				optimal_pipette_mixing = give_me_optimal_pipette(vol_mixing, program_variables.pipR, program_variables.pipL)
+				if optimal_pipette_mixing.max_volume < vol_mixing:
+					vol_mixing = optimal_pipette_mixing.max_volume
+				
+				if optimal_pipette_mixing.mount == "right":
+					tiprack_mix = user_variables.APINameTipR
+					starting_tip_mix = user_variables.startingTipPipR
+				else:
+					tiprack_mix = user_variables.APINameTipL
+					starting_tip_mix = user_variables.startingTipPipL
+				if optimal_pipette_mixing.has_tip == False:
+					check_tip_and_pick(optimal_pipette_mixing, tiprack_mix, program_variables.deckPositions, protocol, replace_tiprack = user_variables.replaceTiprack, initial_tip = starting_tip_mix, same_tiprack = program_variables.sameTipRack)
+				
+				# Now we mix
+				mixing_eppendorf_15(tube, program_variables.mixWells["Volumes"][index], vol_mixing, optimal_pipette_mixing, protocol)
+				
+				# Distribute the reactions of that tube
+				if optimal_pipette == optimal_pipette_mixing:
 					optimal_pipette.distribute(program_variables.volTotal, tube, wells_distribute_mix[:program_variables.mixWells["Reactions Per Tube"][index]], new_tip="never", disposal_volume=0)
 				else:
-					last_pipette.drop_tip()
-					check_tip_and_pick (optimal_pipette, program_variables.deckPositions, user_variables, protocol)
+					optimal_pipette_mixing.drop_tip()
+					check_tip_and_pick (optimal_pipette, tiprack, program_variables.deckPositions, protocol, initial_tip = starting_tip, same_tiprack = program_variables.sameTipRack, replace_tiprack = user_variables.replaceTiprack)
 					optimal_pipette.distribute(program_variables.volTotal, tube, wells_distribute_mix[:program_variables.mixWells["Reactions Per Tube"][index]], new_tip="never", disposal_volume=0)
 					
 			del wells_distribute_mix[:program_variables.mixWells["Reactions Per Tube"][index]]
@@ -1279,29 +1453,60 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 	# Distribute DNA parts and acceptor module to the different final wells
 	
 	generator_final_wells = generator_positions (wells_distribute_free)
+
+	# Check the optimal pipette for acceptor and modules
+	if user_variables.acceptorVolume > 0:
+		optimal_pipette_acceptor = give_me_optimal_pipette (user_variables.acceptorVolume, program_variables.pipR, program_variables.pipL)
+		
+		if optimal_pipette_acceptor == "right":
+			tiprack_acceptor = user_variables.APINameTipR
+			starting_tip_acceptor = user_variables.startingTipPipR
+		else:
+			tiprack_acceptor = user_variables.APINameTipL
+			starting_tip_acceptor = user_variables.startingTipPipL
+	
+	if user_variables.moduleVolume > 0:
+		optimal_pipette_module = give_me_optimal_pipette (user_variables.moduleVolume, program_variables.pipR, program_variables.pipL)
+		
+		if optimal_pipette_module == "right":
+			tiprack_module = user_variables.APINameTipR
+			starting_tip_module = user_variables.startingTipPipR
+		else:
+			tiprack_module = user_variables.APINameTipL
+			starting_tip_module = user_variables.startingTipPipL
+	
+
+	
+
 	for name_combination, parts_combination in program_variables.combinations.items():
 		# Set the final well
 		well_final_combination = next(generator_final_wells)
 		
 		if user_variables.acceptorVolume > 0:
 			# Take well where the acceptor is
-			optimal_pipette_acceptor = optimal_pipette_use(user_variables.acceptorVolume, program_variables.pipR, program_variables.pipL)
-			well_acceptor = find_well_by_value (parts_combination["acceptor"], program_variables.samplePlates)
+			all_well_acceptor = find_well_by_value (parts_combination["acceptor"], program_variables.samplePlates)
+			if len(all_well_acceptor) != 1:
+				raise Exception(f"The acceptor '{parts_combination['acceptor']}' is located in more than 1 well in the given maps, this protocol only allows one tube per part")
+			else:
+				well_acceptor = all_well_acceptor[0]
 			# Transfer the acceptor
-			check_tip_and_pick (optimal_pipette_acceptor, program_variables.deckPositions, user_variables, protocol)
+			check_tip_and_pick (optimal_pipette_acceptor, tiprack_acceptor, program_variables.deckPositions, protocol, initial_tip = starting_tip_acceptor, same_tiprack = program_variables.sameTipRack, replace_tiprack = user_variables.replaceTiprack)
 			optimal_pipette_acceptor.transfer(user_variables.acceptorVolume, well_acceptor, well_final_combination, new_tip = "never")
 			optimal_pipette_acceptor.drop_tip()
 		
 		
-		# Transfer all the DNA parts that will contain th efinal constructs
+		# Transfer all the DNA parts that will contain the final constructs
 		if user_variables.moduleVolume > 0:
 			for part_plasmid in parts_combination["modules"]:
 				# Take the module part
-				well_source_DNApart = find_well_by_value (part_plasmid, program_variables.samplePlates)
-				
+				all_well_source_DNApart = find_well_by_value (part_plasmid, program_variables.samplePlates)
+				if len(all_well_source_DNApart) != 1:
+					raise Exception(f"The module part '{part_plasmid}' is located in more than 1 well in the given maps, this protocol only allows one tube per part")
+				else:
+					well_source_DNApart = all_well_source_DNApart[0]
+
 				# Transfer the module volume
-				optimal_pipette_module = optimal_pipette_use(user_variables.moduleVolume, program_variables.pipR, program_variables.pipL)
-				check_tip_and_pick (optimal_pipette_module, program_variables.deckPositions, user_variables, protocol)
+				check_tip_and_pick (optimal_pipette_module, tiprack_module, program_variables.deckPositions, protocol, initial_tip = starting_tip_module, same_tiprack = program_variables.sameTipRack, replace_tiprack = user_variables.replaceTiprack)
 				optimal_pipette_module.transfer(user_variables.moduleVolume, well_source_DNApart, well_final_combination, new_tip = "never")
 				optimal_pipette_module.drop_tip()
 		
@@ -1325,7 +1530,7 @@ The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[
 			protocol.pause("Protocol is pause so plate in thermocyler can be mixed and/or user can put caps on it")
 		
 		program_variables.tc_mod.close_lid()
-		run_program_thermocycler(program_variables.tc_mod, user_variables.temperatureProfile, user_variables.temperatureLid, user_variables.finalStateLid, user_variables.finalTemperatureBlock, user_variables.finalVolume, protocol)
+		run_program_thermocycler(program_variables.tc_mod, user_variables.temperatureProfile, user_variables.temperatureLid, user_variables.finalVolume, protocol, final_lid_state = user_variables.finalStateLid, final_block_state = user_variables.finalTemperatureBlock)
 	
 	# Final home
 	protocol.home()
