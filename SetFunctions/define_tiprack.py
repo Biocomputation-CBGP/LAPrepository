@@ -22,7 +22,7 @@ def define_tiprack (pipette, tiprack_name, position_deck, protocol, same_tiprack
 		try:
 			tiprack = protocol.load_labware(tiprack_name, position)
 			position_deck[position] = tiprack_name
-		except FileNotFoundError:
+		except OSError:
 			raise Exception (f"The tip rack '{tiprack_name}' is not found in the opentrons namespace, check for typos or add it to the custom labware")
 		except DeckConflictError: # Continue to the next position
 			continue
