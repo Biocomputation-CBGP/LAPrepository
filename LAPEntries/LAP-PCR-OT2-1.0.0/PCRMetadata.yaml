@@ -1,0 +1,110 @@
+---
+Keywords: PCR, High-throughput, Opentrons
+Script: 
+ name: ScriptPCR.py
+ title: PCR Mix Preparation and Temperature Profile
+ version: 1.0.0
+ description: >
+  Preparing the PCR mix with the DNA template and reactives for a set number of set of primers
+  to all the established source samples
+ downloadURL: https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries/LAP-PCR-OT2-1.0.0
+ date: 01/07/2023
+Author:
+ name: Biocomputation Lab
+ institution: CBGP UPM-INIA
+ email: angel.goni@upm.es
+ web: https://biocomputationlab.com/
+Language:
+ name: python
+ version: 3.7.1
+ download: https://www.python.org/downloads/
+Platform:
+ name: Opentrons OT-2
+ versionAPI: 2.14
+Environment:
+ system: Linux
+ osVersion: 4.14.74
+Requirements:
+ - "opentrons >= 6.3.1"
+ - "pandas >= 0.25.3"
+ - "numpy >= 1.15.1"
+ - "openpyxl >= 3.1.2"
+ - "math"
+ - "random"
+Input:
+ nameFile: VariablesPCR
+ extension: XLSX
+ minNumberSheets: 5
+ GeneralVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Source Plate
+   - Number of Source Plates
+   - API Name Final PCR Plate
+   - Well Start Final PCR Plate
+   - API Name Eppendorf Reagents Rack
+   - Final Map Name
+ SamplesPlateVariables:
+  columnNames:
+   - Variable Names
+  rowNames:
+   - Number Samples
+   - Well Start
+   - Position Controls
+   - Wells not to perform PCR
+   - Map IDs
+ PipetteVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Right Pipette
+   - API Name Left Pipette
+   - API Name Tiprack Left Pipette
+   - API Name Tiprack Right Pipette
+   - Initial Tip Left Pipette
+   - Initial Tip Right Pipette
+   - Replace Tipracks
+ ReagentsPerVariables:
+  columnNames:
+   - Variable Name
+   - Value
+  rowNames:
+   - Number primer/set
+   - Number sets
+   - Volume each primer (uL)
+   - Volume polymerase mix (uL)
+   - Volume sample DNA Template (uL)
+   - Final volume (uL)
+   - Extra Pipetting Factor
+ ModuleVariables:
+  columnNames:
+   - Variable Name
+   - Value
+  rowNames:
+   - Presence Thermocycler
+   - Presence Heater-Shaker
+   - Final Open Lid
+   - Temperature Lid
+   - Hold Block Temperature
+   - RPM Heater-Shaker
+   - API Name Heater-Shaker Labware
+   - Pause Before Temperature Program
+ TemperatureProfile:
+  columnNames:
+   - Temperature
+   - Time (s)
+   - Number of Cycles
+   - Cycle Status
+Output:
+ nameFile: Value in row 'Final Map Name' 
+ extension: XLSX
+ content: Map with the dimensions of the final labware and the well names of the DNA-templates with the respective primer sets
+Comments: >
+ This protocol can only work with single-channel pipettes,
+ the required packages need to be installed and the input file
+ need to be in the robot that is going to run this script.
+ The TemperatureProfile sheet is optional, only required if 'Presence Thermocycler'
+ is set as True.
