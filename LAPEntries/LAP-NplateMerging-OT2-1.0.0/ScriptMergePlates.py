@@ -48,6 +48,8 @@ class UserVariables:
 		self.numberSamplesTake = list(each_plate[each_plate["Variable Names"] == "Number Samples Pick"].values[0][1:])
 		self.sampleSelection = list(each_plate[each_plate["Variable Names"] == "Type of Sample Selection"].values[0][1:])
 		
+		self.nameSourcePlates = list(each_plate.columns)
+		self.nameSourcePlates.remove("Variable Names")
 		
 	def check(self, protocol):
 		"""
@@ -645,7 +647,11 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 	
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Assign the source and final plates into the deck
-	labware_source = setting_labware(user_variables.numberSourcePlates, user_variables.APINameSamplePlate, program_variables.deckPositions, protocol, label = "Sample Source Plate")
+	# Set labels
+	labels_source_plate = []
+	for name in user_variables.nameSourcePlates[:user_variables.numberSourcePlates]:
+		labels_source_plate.append(f"Source Plate '{name}'")
+	labware_source = setting_labware(user_variables.numberSourcePlates, user_variables.APINameSamplePlate, program_variables.deckPositions, protocol, label = labels_source_plate)
 	program_variables.deckPositions = {**program_variables.deckPositions , **labware_source}
 	
 	for index_labware, labware in enumerate(labware_source.items()):
