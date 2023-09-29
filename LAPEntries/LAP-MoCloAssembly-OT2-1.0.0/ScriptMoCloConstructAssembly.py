@@ -340,7 +340,7 @@ class SettedParameters:
 		for index_plate in range(user_variables.numberSourcePlates):
 			# We wil fill this maps after setting the labware
 			self.samplePlates[index_plate] = {"Position":None,
-											  "Label":f"DNA Plate with Map {user_variables.nameSheetMapParts[index_plate]}",
+											  "Label":f"DNA Plate '{user_variables.nameSheetMapParts[index_plate]}'",
 											  "Opentrons Place":None,
 											  "Map Names":None,
 											  "Map Volumes":None,
@@ -1111,10 +1111,10 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 		# Let's check that the labware and map have the same names of the rows and columns
 		row_names = list(labware[1].rows_by_name().keys())
 		columns_names = list(labware[1].columns_by_name().keys())
-		
+
 		rows_map = list(program_variables.samplePlates[index_labware]['Map Names'].index.values)
 		columns_map = list(map(str, list(program_variables.samplePlates[index_labware]['Map Names'].columns.values)))
-		
+
 		if row_names != rows_map or columns_names != columns_map:
 			raise Exception(f"""
 The columns and rows of the Maps of DNA Parts {user_variables.nameSheetMapParts[index_labware]} need to have the same names as the ones in {user_variables.APINameSamplePlate}:
