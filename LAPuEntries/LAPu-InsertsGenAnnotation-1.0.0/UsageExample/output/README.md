@@ -1,4 +1,4 @@
-Output:
+Output contained in the resulting directory results_allign:
 - reads_fastq
 - all_reads_merged.fasta
 - all_reads_merged_quality.fastq
