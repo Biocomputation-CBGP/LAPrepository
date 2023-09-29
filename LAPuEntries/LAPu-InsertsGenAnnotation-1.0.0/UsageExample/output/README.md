@@ -1,1 +1,11 @@
-
+Output:
+- reads_fastq
+- all_reads_merged.fasta
+- all_reads_merged_quality.fastq
+- all_reads_merged_quality_fastqc.html
+- all_reads_merged_quality_fastqc.zip
+- all_reads_merged_quality_trimmed.fastq
+- all_reads_merged_trimmed.fasta
+- all_seq_aligned.sam
+- all_seq_aligned.tsv
+- table_reads_genes_description.csv
