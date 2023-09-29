@@ -11,9 +11,9 @@ Directory with the reads stated in the input _sequencing_results_ transformed to
 
 This folder could be used as an input of this script
 
-### all_reads_merged.fasta (optional)
+### all_reads_merged.fasta
 
-Merged of all the sequences in the directory _sequence_results_ in FASTA format
+Merged of all the sequences in the directory _sequence_results_ in FASTA format. This file would be used to do the allignment against the input file _Pseudomonas_putida_KT4220_110.fna_ if the user did not provided in the command the argument **-quality**
 
 ### all_reads_merged_quality.fastq (optional)
 
@@ -41,10 +41,31 @@ Sequences without quality from the file _all_reads_merged_quality_trimmed.fastq_
 
 ### all_seq_aligned.sam
 
-
+SAM (Sequence Alignment Map) output from the allignment of _all_reads_merged_trimmed.fasta_ with _Pseudomonas_putida_KT4220_110.fna_ done by the BLASTn software
 
 ### all_seq_aligned.tsv
 
+Tabular separated output from the allignment of _all_reads_merged_trimmed.fasta_ with _Pseudomonas_putida_KT4220_110.fna_ done by the BLASTn software
 
+This file has the following columns separated by tabs:
+* **qaccver**: Query accesion.version
+* **saccver**: Subject accession.version
+* **pident**: Percentage of identical matches
+* **length**: Alignment length
+* **mismatch**: Number of mismatches
+* **gapopen**: Number of gap openings
+* **qstart**: Start of alignment in query
+* **qend**: End of alignment in query
+* **sstart**: Start of alignment in subject
+* **send**: End of alignment in subject
+* **evalue**: Expect value
+* **bitscore**: Bit score
+* **sstrand**: Subject Strand
+
+This columns are the default ones given by this script, if more or less columns are wanted the columns should be providede in the optional argument **-ca**. 3 columns are always going to be provided in this file because they are needed to give the final annotation table which are _qaccver_, _bitscore_ and _sstart_.
+
+For more information about each topic check the manual of BLASTn provided by the NCBI (https://www.ncbi.nlm.nih.gov/books/NBK279690/)
 
 ### table_reads_genes_description.csv
+
+Table where the information from the allignment is annotated by the information given in _Pseudomonas_putida_KT4220_110.fna_. The columns in this table can be customizable in **-ca** and **-cb**. In this final table the previously needed columns, if not stated, arenot going to be present, they are only needed to create the table but they do not have to be in the output
