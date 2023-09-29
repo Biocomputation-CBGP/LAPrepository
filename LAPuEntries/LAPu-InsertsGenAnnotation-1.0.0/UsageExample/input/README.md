@@ -1,11 +1,18 @@
 # Input
 This script needs a serious files as an input, minimum 2 files and 1 directory and maximum 3 files and 1 directory.
 
-In addition, this program needs another argument that will be the extension of the files in _sequencing_results_ that the sequences have, in this case, that extension is txt
+In addition, this program needs another argument that will be the **extension** of the files in _sequencing_results_ that the sequences have, in this case, that extension is txt
 
 ### sequencing_results
 
+Folder that contains 4 types of files:
 
+* _.ab1_: File that correspond to the DNA electropherogram results of the corresponding sequence file
+* _.phd.1_: Phred file that conatins the quality values for each of the nucleotides sequenced in the respective sequence file
+* _.pdf_: visual form of the results in the phd.1 file
+* _.txt_: File that contains the sequenced sequence in fasta format
+
+Each sequence have the 4 files associated but only the ab1 and txt files are going to be used, the first one to perform a quality analysis, if requested in the command line with arguments like **-quality** and the txt file that will be used to perform th eallignment against the genome holded in the file _Pseudomonas_putida_KT2440_110.fna_
 
 ### Pseudomonas_putida_KT2440_110.fna
 
