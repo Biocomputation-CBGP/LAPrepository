@@ -48,7 +48,9 @@ class UserVariables:
 		self.APINameTipL = pipettes[pipettes["Variable Names"] == "API Name Left Pipette TipRack"]["Value"].values[0]
 		
 		self.antibioticsPerPlate = list(each_plate[each_plate["Variable Names"] == "Media(s) per plate"].values[0][1:])
-		
+		self.nameSourcePlates = list(each_plate.columns)
+		self.nameSourcePlates.remove("Variable Names")
+
 		self.replaceTiprack = pipettes[pipettes["Variable Names"] == "Replace Tipracks"]["Value"].values[0]
 		
 		return
@@ -265,7 +267,7 @@ class SetParameters:
 				# Initialize with the values that we can set now
 				self.incubationPlates[incubation_plates_needed] = {"Source Plate":index_plate,
 														   "Position":None,
-														   "Label":f"Samples Plate {index_plate+1} with {antibiotic_source_plate}",
+														   "Label":f"Samples Plate '{user_variables.nameSourcePlates[index_plate]}' with {antibiotic_source_plate}",
 														   "Antibiotic":antibiotic_source_plate,
 														   "Number Samples":self.samplePlates[index_plate]["Number Samples"],
 														   "Opentrons Place":None}
@@ -574,7 +576,13 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 	# Assign the sample source plates and the final ones that the number is already set
 	
 	# We start settign the source labware which number has been provided
-	labware_source = setting_labware(user_variables.numberSourcePlates, user_variables.APINameSamplePlate, program_variables.deckPositions, protocol, label = "Sample Souce Plate")
+	# Get the labels
+	# Set labels
+	labels_source_plate = []
+	for name in user_variables.nameSourcePlates[:user_variables.numberSourcePlates]:
+		labels_source_plate.append(f"Source Plate '{name}'")
+
+	labware_source = setting_labware(user_variables.numberSourcePlates, user_variables.APINameSamplePlate, program_variables.deckPositions, protocol, label = labels_source_plate)
 	program_variables.deckPositions = {**program_variables.deckPositions , **labware_source}
 	
 	
