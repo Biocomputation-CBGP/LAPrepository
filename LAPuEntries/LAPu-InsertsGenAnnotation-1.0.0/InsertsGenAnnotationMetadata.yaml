@@ -22,6 +22,8 @@ Environment:
  osVersion: 20.04.4
 Requirements:
  - "BLASTn <= 2.10.0"
+ - "sickle >= 1.33"
+ - "fastQC >= 0.11.9"
  - "pandas >= 2.0.0"
  - "biopython >= 1.81"
  - "subprocess"
