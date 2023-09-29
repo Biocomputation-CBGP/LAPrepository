@@ -53,6 +53,8 @@ class UserVariables:
 		
 		self.finalMapName = list(each_plate[each_plate["Variable Names"] == "Final Map Name"].values[0][1:])
 		self.volumesSamplesPerPlate = list(each_plate[each_plate["Variable Names"] == "Volume Transfer Sample (uL)"].values[0][1:])
+		self.nameSourcePlates = list(each_plate.columns)
+		self.nameSourcePlates.remove("Variable Names")
 		return
 		
 	def check(self, protocol):
@@ -298,7 +300,7 @@ class SettedParameters:
 			if self.samplePlates[index_plate]["Mediums"] == None:
 				self.finalPlates[incubation_plates_needed] = {"Source Plate":index_plate,
 														   "Position":None,
-														   "Label":f"Selected Samples from Plate {index_plate+1} with only Selected Colonies",
+														   "Label":f"Selected Samples from Plate '{user_variables.nameSourcePlates[index_plate]}' with only Selected Colonies",
 														   "Medium":None,
 														   "Number Samples":None, # We will have to select and see how many
 														   "Opentrons Place":None,
@@ -310,7 +312,7 @@ class SettedParameters:
 					# Initialize with the values that we can set now
 					self.finalPlates[incubation_plates_needed] = {"Source Plate":index_plate,
 															   "Position":None,
-															   "Label":f"Selected Samples from Plate {index_plate+1} with {reactive_source_plate}",
+															   "Label":f"Selected Samples from Plate '{user_variables.nameSourcePlates[index_plate]}' with {reactive_source_plate}",
 															   "Medium":reactive_source_plate,
 															   "Number Samples":None, # We will have to select and see how many
 															   "Opentrons Place":None,
@@ -679,7 +681,11 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 	
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Set the source and final plates because we know how much we have of both
-	source_plates = setting_labware(user_variables.numberSourcePlates, user_variables.APINameSamplePlate, program_variables.deckPositions, protocol, label = "Sample Source Plate")
+	# Get the labels for the source plates
+	labels_source_plate = []
+	for name in user_variables.nameSourcePlates[:user_variables.numberSourcePlates]:
+		labels_source_plate.append(f"Source Plate '{name}'")
+	source_plates = setting_labware(user_variables.numberSourcePlates, user_variables.APINameSamplePlate, program_variables.deckPositions, protocol, label = labels_source_plate)
 	program_variables.deckPositions = {**program_variables.deckPositions , **source_plates}
 	vol_max_well_source_labware = list(labware_context.get_labware_definition(user_variables.APINameSamplePlate)["wells"].values())[0]['totalLiquidVolume']
 	for index_labware, labware in enumerate(source_plates.items()):
