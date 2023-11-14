@@ -1,10 +1,10 @@
 """
 Python script destined to OT-2
 This script performs a creation of reactive plates mixed with the respective colonies of the source plate
-This script needs a csv attached to perform the running and will give an output file (txt) with some instructions
-For more info go to https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries,
-https://github.com/Biocomputation-CBGP/OT2/tree/main/AntibioticPlatesGeneration and/or
-https://www.protocols.io/view/ot-2-media-dispensing-and-culture-inoculation-prot-q26g7yb3kgwz/v1
+This script needs an excel attached to perform the running
+For more info go to https://github.com/BiocomputationLab/LAPrepository/tree/main/LAPEntries,
+https://www.protocols.io/view/ot-2-media-dispensing-and-culture-inoculation-prot-q26g7yb3kgwz and/or
+http://www.laprepo.com
 """
 
 ## Packages needed for the running of the protocol
@@ -43,7 +43,6 @@ class UserVariables:
 		self.APINameSamplePlate = general[general["Variable Names"] == "Name Source Plate"]["Value"].values[0]
 		self.APINameIncubationPlate = general[general["Variable Names"] == "Name Final Plate"]["Value"].values[0]
 		self.APINameFalconPlate = general[general["Variable Names"] == "Name 15mL Tuberack"]["Value"].values[0]
-		self.valueReplaceTiprack = pipettes[pipettes["Variable Names"] == "Replace Tipracks"]["Value"].values[0]
 		self.APINameTipR = pipettes[pipettes["Variable Names"] == "API Name Right Pipette TipRack"]["Value"].values[0]
 		self.APINameTipL = pipettes[pipettes["Variable Names"] == "API Name Left Pipette TipRack"]["Value"].values[0]
 		
@@ -51,7 +50,7 @@ class UserVariables:
 		self.nameSourcePlates = list(each_plate.columns)
 		self.nameSourcePlates.remove("Variable Names")
 
-		self.replaceTiprack = pipettes[pipettes["Variable Names"] == "Replace Tipracks"]["Value"].values[0]
+		self.replaceTiprack = str(pipettes[pipettes["Variable Names"] == "Replace Tipracks"]["Value"].values[0])
 		
 		return
 	
@@ -66,11 +65,11 @@ class UserVariables:
 		labware_context = opentrons.protocol_api.labware
 		
 		# Check none of the values are empty
-		if any(pd.isna(element) for element in [self.numberSourcePlates, self.nameAntibiotics, self.volumeAntibiotic, self.volumeSample, self.APINamePipR, self.APINamePipL, self.startingTipPipR, self.startingTipPipL, self.APINameSamplePlate, self.APINameIncubationPlate, self.APINameFalconPlate, self.valueReplaceTiprack, self.APINameTipR, self.APINameTipL, self.replaceTiprack]):
+		if any(pd.isna(element) for element in [self.numberSourcePlates, self.nameAntibiotics, self.volumeAntibiotic, self.volumeSample, self.APINamePipR, self.APINamePipL, self.startingTipPipR, self.startingTipPipL, self.APINameSamplePlate, self.APINameIncubationPlate, self.APINameFalconPlate, self.replaceTiprack, self.APINameTipR, self.APINameTipL, self.replaceTiprack]):
 			raise Exception("None of the cells in the sheets 'GeneralVariables' and 'PipetteVariables' can be left empty")
 		else:
 			self.nameAntibiotics = self.nameAntibiotics.replace(" ","").split(",")
-			self.valueReplaceTiprack =self.valueReplaceTiprack.lower()
+			self.replaceTiprack = self.replaceTiprack.lower()
 		if all(pd.isna(element) for element in self.samplesPerPlate):
 			raise Exception("The Variable 'Samples per plate' cannot be left completely empty, it is necessary to have as many values as the value in 'Number of Source Plates'")
 		if all(pd.isna(element) for element in self.firstWellSamplePerPlate):
@@ -82,12 +81,28 @@ class UserVariables:
 		# If this raises an error some other lines of this function are not going to work, that is why we need to quit the program before and not append it to the errors
 		try:
 			definition_source_plate = labware_context.get_labware_definition(self.APINameSamplePlate)
+		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
+			raise Exception(f"The source plate labware {self.APINameSamplePlate} is not in the opentrons labware space so it cannot be defined. Check for any typo of the api labware name or that the labware is in the Opentrons App.")
+		
+		try:
 			definition_final_plate = labware_context.get_labware_definition(self.APINameIncubationPlate)
+		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
+			raise Exception(f"The final plate labware {self.APINameIncubationPlate} is not in the opentrons labware space so it cannot be defined. Check for any typo of the api labware name or that the labware is in the Opentrons App.")
+		
+		try:
 			definition_rack = labware_context.get_labware_definition(self.APINameFalconPlate)
+		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
+			raise Exception(f"The 15mL falcon tube rack labware {self.APINameFalconPlate} is not in the opentrons labware space so it cannot be defined. Check for any typo of the api labware name or that the labware is in the Opentrons App.")
+		
+		try:
 			definition_tiprack_right = labware_context.get_labware_definition(self.APINameTipR)
+		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
+			raise Exception(f"The right tip rack {self.APINameTipR} is not in the opentrons labware space so it cannot be defined. Check for any typo of the api labware name or that the labware is in the Opentrons App.")
+		
+		try:
 			definition_tiprack_left = labware_context.get_labware_definition(self.APINameTipL)
 		except OSError: # This would be catching the FileNotFoundError that happens when a labware is not found
-			raise Exception("One or more of the introduced labwares or tipracks are not in the custom labware directory of the opentrons. Check for any typo of the api labware name.")
+			raise Exception(f"The left tip rack {self.APINameTipL} is not in the opentrons labware space so it cannot be defined. Check for any typo of the api labware name or that the labware is in the Opentrons App.")
 		
 		# Check that we have at least 1 source plate
 		if self.numberSourcePlates <= 0:
@@ -145,14 +160,14 @@ class UserVariables:
 					raise Exception("If the tipracks of the right and left mount pipettes are the same, the initial tip should be as well.")
 		
 		# Control of typos in the initial tip both of right pipette and left pipette, i.e., check if that tip exist
-		if self.startingTipPipR not in definition_tiprack_right["groups"][0]["wells"]:
+		if self.startingTipPipR not in definition_tiprack_right["wells"].keys():
 			raise Exception("Starting tip of right pipette is not valid, check for typos")
-		if self.startingTipPipL not in definition_tiprack_left["groups"][0]["wells"]:
+		if self.startingTipPipL not in definition_tiprack_left["wells"].keys():
 			raise Exception("Starting tip of left pipette is not valid, check for typos")
 		
 		# Control that the multipipette actually starts at A and not other letter, in general that starts with the first place of the column in the tiprack
 		# This can only be checked correctly if the tip actually exists
-		if self.startingTipPipR.lower() not in list(column[0].lower() for column in definition_tiprack_right["ordering"]):
+		if "a" not in self.startingTipPipR.lower():
 			# Check that has to be A in the multichannel
 			raise Exception("The initial tip of the multichannel pipette needs to be at the top of the column, e.g., it has to start with an A")
 		
@@ -165,21 +180,29 @@ class UserVariables:
 		
 		# Check that the initial well with sample exist in the labware source
 		for initial_well_source_plate in self.firstWellSamplePerPlate[:self.numberSourcePlates]:
-			if initial_well_source_plate not in list(definition_source_plate["wells"].keys()):
+			if initial_well_source_plate not in definition_source_plate["wells"].keys():
 				raise Exception(f"The well '{initial_well_source_plate}' does not exist in the labware {self.APINameSamplePlate}, check for typos")
 			
 		# Check that initial labware and final labware has 8 rows so the multi-channel pipette works
 		if len(definition_source_plate["ordering"][0]) != 8 or len(definition_final_plate["ordering"][0]) != 8:
 			raise Exception ("Either the sample labware of the final labware does not have 8 rows, which is neccesary for this protocol with 8-channel pipette to work")
 		
+		# Check that the source plate is not a mixed one
+		if len(definition_source_plate["groups"]) > 1:
+			raise Exception("The source plate needs to have only 1 type of well, i.e, the labware needs to be homogeneous")
+
 		# Check that the first well with a sample + number of samples does not exceed the source plate wells
 		for index_plate, number_reactions in enumerate(self.samplesPerPlate[:self.numberSourcePlates]):
-			if len(definition_source_plate["wells"].keys()) < number_reactions+list(definition_source_plate["wells"].keys()).index(self.firstWellSamplePerPlate[index_plate]):
+			if len(definition_source_plate["wells"].keys()) < number_reactions+definition_source_plate['groups'][0]["wells"].index(self.firstWellSamplePerPlate[index_plate]):
 				raise Exception(f"Having the {self.firstWellSamplePerPlate[index_plate]} as the first well with sample and {number_reactions} wells with sample does not fit in the {self.APINameSamplePlate} labware")
-		
-		# Finally, we check that the volume of media or sample to transfer is not 0
+
+		# Check that the volume of media or sample to transfer is not 0
 		if self.volumeAntibiotic <= 0 or self.volumeSample <= 0:
 			raise Exception("Neither 'Volume of Sample to Transfer (uL)' or 'Volume of Media to Transfer (uL)' can be lower or equal than 0 ul")
+		
+		# Check the falcon tube rack is only composed by 15mL falcons
+		if len(definition_rack["groups"]) > 1:
+			raise Exception("The falcon rack needs to have only 1 type of tube admitted, tipracks such as 'Opentrons 10 Tube Rack with Falcon 4x50 mL, 6x15 mL Conical' is not valid")
 		
 class SetParameters:
 	"""
@@ -225,14 +248,7 @@ class SetParameters:
 		# Check if the volumes can be picked with these set of pipettes
 		if self.pipR.min_volume > user_variables.volumeSample or self.pipL.min_volume > user_variables.volumeAntibiotic:
 			raise Exception ("Either the volume 'Volume of Sample to Transfer (uL)' or the volume 'Volume of Media to Transfer (uL)' cannot be picked by the set pipettes, try another set of volumes or pipettes")
-			
-		if user_variables.valueReplaceTiprack.lower() == "true":
-			self.replaceTiprack = True
-		elif user_variables.valueReplaceTiprack.lower() == "false":
-			self.replaceTiprack = False
-		else:
-			raise Exception("Replace Tiprack Variable can only have 2 possible values: True or False")
-		
+
 		# Antibiotic Tubes
 		for antibiotic in user_variables.nameAntibiotics:
 			self.antibioticWells[antibiotic] = {"Positions":[], "Volumes":None, "Reactions Per Tube":None, "Number Total Reactions":0, "Definition Liquid": None}
@@ -532,6 +548,7 @@ metadata = {
 
 def run(protocol:opentrons.protocol_api.ProtocolContext):
 	labware_context = opentrons.protocol_api.labware
+
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Read Variables Excel, define the user and protocol variables and check them for initial errors
 	
@@ -597,7 +614,7 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 		for well in program_variables.samplePlates[index_labware]["Opentrons Place"].wells()[program_variables.samplePlates[index_labware]["Index First Well Sample"]:(program_variables.samplePlates[index_labware]["Index First Well Sample"]+program_variables.samplePlates[index_labware]["Number Samples"])]:
 			well.load_liquid(program_variables.liquid_samples, volume = 0.9*vol_max_well_source_labware)
 		
-	# Set the final plates which number has been calculates in the assign_variables method of the clas SettedParameters
+	# Set the final plates which number has been calculates in the assign_variables method of the class SettedParameters
 	# First lets get the labels
 	labels_incubation_plates = []
 	for final_plate in program_variables.incubationPlates.values():
@@ -653,7 +670,11 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 		wells_distribute_antibiotic = []
 		for number_plate, plate_incubation in program_variables.incubationPlates.items():
 			if plate_incubation["Antibiotic"] == antibiotic_type:
-				wells_distribute_antibiotic += plate_incubation["Opentrons Place"].wells()[:plate_incubation["Number Samples"]]
+				# Find the first well that needs to be filled
+				row_well_initial = program_variables.samplePlates[plate_incubation["Source Plate"]]["Opentrons Place"].wells()[program_variables.samplePlates[plate_incubation["Source Plate"]]["Index First Well Sample"]]._core._row_name
+				index_row_initial = list(program_variables.samplePlates[plate_incubation["Source Plate"]]["Opentrons Place"].rows_by_name().keys()).index(row_well_initial)
+				# Set the wells to distribute the sample
+				wells_distribute_antibiotic += plate_incubation["Opentrons Place"].wells()[index_row_initial:index_row_initial+plate_incubation["Number Samples"]]
 		for index_tube, tube in enumerate(program_variables.antibioticWells[antibiotic_type]["Reactions Per Tube"]):
 			if len(wells_distribute_antibiotic) <= tube:
 				program_variables.antibioticWells[antibiotic_type]["Volumes"][index_tube] = distribute_z_tracking_falcon15ml (program_variables.pipL,
@@ -673,7 +694,7 @@ def run(protocol:opentrons.protocol_api.ProtocolContext):
 				tube -= len(wells_distribute_antibiotic)
 				
 		program_variables.pipL.drop_tip()
-	
+
 	#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	# Transfer colonies to different plates
 	for final_plate in program_variables.incubationPlates.values():
