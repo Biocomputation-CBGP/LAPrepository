@@ -1,0 +1,81 @@
+---
+Keywords: Selection, High-throughput, Opentrons
+Script: 
+ name: CounterSelectionScript.py
+ title: 2 criteria Counter Selection
+ version: 1.1.0
+ description: >
+  Colony selection from one or more plates
+  taking in account a 2 criteria value threshold
+  in an opentrons robot OT-2
+ downloadURL: https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPEntries/LAP-ColonyCounterSelection-OT2-1.1.0
+ date: 11/12/2023
+Author:
+ name: Biocomputation Lab
+ institution: CBGP UPM-INIA
+ email: angel.goni@upm.es
+ web: https://biocomputationlab.com/
+Language:
+ name: python
+ version: 3.7.1
+ download: https://www.python.org/downloads/
+Platform:
+ name: Opentrons OT-2
+ versionAPI: 2.14
+Environment:
+ system: Linux
+ osVersion: 4.14.74
+Requirements:
+ - "opentrons >= 6.3.1"
+ - "pandas >= 0.25.3"
+ - "numpy >= 1.15.1"
+ - "openpyxl >= 3.1.2"
+ - "math"
+ - "random"
+Input:
+ nameFile: VariablesCounterSelection
+ extension: XLSX
+ minNumberSheets: 3
+ GeneralVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Source Plate
+   - API Name Final Plate
+   - API Name Rack 15mL Falcon Reactives
+   - Name Reactives
+   - Number of Source Plates
+   - Volume per Reactive (uL)
+   - Name Final File Maps
+ PipetteVariables:
+  columnNames:
+   - Variable Names
+   - Value
+  rowNames:
+   - API Name Right Pipette
+   - API Name Left Pipette
+   - API Name Tiprack Left Pipette
+   - API Name Tiprack Right Pipette
+   - Initial Tip Left Pipette
+   - Initial Tip Right Pipette
+   - Replace Tipracks
+ PerPlateVariables:
+  columnNames:
+   - Variable Names
+  rowNames:
+   - Threshold Selection Value
+   - Name Sheet Selection Value<Threshold
+   - Name Sheet Selection Value>Threshold
+   - Reactives Per Plate
+   - Well Start Final Plate
+   - Final Map Name
+   - Volume Transfer Sample (uL)
+Output:
+ nameFile: Value in row 'Name Final File Maps' with Sheets called as values in 'Final Map Name'
+ extension: XLSX
+ content: Map with the dimensions of the final labware and the well names of the samples selected
+Comments: >
+ This protocol can only work with single-channel pipettes,
+ the required packages need to be installed and the input file
+ need to be in the robot that is going to run this script
