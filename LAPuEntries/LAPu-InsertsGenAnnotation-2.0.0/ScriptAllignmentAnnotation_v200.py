@@ -16,7 +16,8 @@
 
 # This script has been tested with bacterial genomes, specifically, for Pseudomonas Putida
 
-# For more information about this script you can access to the LAP entry (...) or protocols.io entry (...)
+# For more information about this script you can access to the LAP entry https://www.laprepo.cbgp.upm.es/protocol/bacterial-insertions-in-genome-annotation-using-blastn-v2-0-0/
+# or protocols.io entry https://www.protocols.io/view/bacterial-genome-annotation-script-using-blastn-dm6gpjrb1gzp/
 # ----------------------------------------------------------------------------------------------------------------------------
 
 # Import the neccesary python packages
@@ -46,13 +47,16 @@ description_message = """
 epilog_message = """
 \t\t--------------------------------------------------------------------------------------------------------------------------
 \t\t--------------------------------------------------------------------------------------------------------------------------
-\t\t                                    For more information visit
-\t\t                            doi protocols io
-\t\t                            enlace lapu
+\t\t                                            For more information visit
+\t\t       https://www.laprepo.cbgp.upm.es/protocol/bacterial-insertions-in-genome-annotation-using-blastn-v2-0-0/
+\t\t          https://www.protocols.io/view/bacterial-genome-annotation-script-using-blastn-dm6gpjrb1gzp/
 \t\t--------------------------------------------------------------------------------------------------------------------------
 \t\t--------------------------------------------------------------------------------------------------------------------------"""
 
-parser = argparse.ArgumentParser(description = description_message, epilog = epilog_message, formatter_class=argparse.RawTextHelpFormatter, usage = "%(prog)s [-h] [-q | -v] [-sm] [-out PATH_OUTPUT] [-f {table,all}] [-t THRESHOLD_RANGE] [-identity MAP_PLATE_IDENTITIES] [-cb FILE_NAMES_COLUMNS_BLAST] [-ca FILE_NAMES_COLUMNS_ANNOTATION] [-quality [QUALITY_FILE_EXTENSION] [-seq]] [-seq [TYPE_SEQENCING]] directoryReads extensionReads genomeSequence genomeAnnotation")
+parser = argparse.ArgumentParser(description = description_message,
+                                 epilog = epilog_message,
+                                 formatter_class=argparse.RawTextHelpFormatter,
+                                 usage = "%(prog)s [-h] [-q | -v] [-sm] [-out PATH_OUTPUT] [-f {table,all}] [-t THRESHOLD_RANGE] [-identity MAP_PLATE_IDENTITIES] [-cb FILE_NAMES_COLUMNS_BLAST] [-ca FILE_NAMES_COLUMNS_ANNOTATION] [-quality [QUALITY_FILE_EXTENSION] [-seq]] [-seq [TYPE_SEQENCING]] directoryReads extensionReads genomeSequence genomeAnnotation")
 
 group = parser.add_mutually_exclusive_group()
 # Positional arguments
@@ -60,7 +64,7 @@ parser.add_argument("directoryReads",
                     help = """
 Files that will have the query strand(s) to search agains the genome sequence
                     """)
-parser.add_argument("extensionReads", #former typeReads
+parser.add_argument("extensionReads",
                     help = """
 Extension that the reads files will have, the vary for one sequence bussiness to others but all of them should be FASTA format type
 In case the reads are not fasta extension, an additional directory will be provided with them in that format
@@ -572,7 +576,7 @@ if args.summaryMap:
 # Let's add the columns of the identity if the argument is there
 if args.identity != None:
     if not args.quiet and not args.verbose:
-        print(" Adding Identity Columns to table")
+        print(" Adding Identity Columns to table\n")
     if args.verbose:
         print(f"""\n------------------------------------------------------------------------------------------------------------------------------
 \n Adding Identity Columns to table with the information in {args.identity}""")
@@ -597,8 +601,7 @@ if args.identity != None:
     position_plate_seq = []
     identity_sample = []
     list_queries = list(final_table["qaccver"])
-    if args.summaryMap:
-        list_locus = list(final_table["Locus Tag"]) #  We establish this valye in case summarymap is defined
+    list_locus = list(final_table["Locus Tag"]) #  We establish this valye in case summarymap is defined
     
     # Establish the regex expression we are going to search the plate sequencing well
     if args.extensionReads == "seq":
@@ -630,16 +633,15 @@ if args.identity != None:
                       """)
             position_plate_seq.append(float("nan"))
             everything_good = False
-            
-        else: # There is a match, maybe a ewll or maybe a number, but there is a match that will have 3 possible elements: well row, well column, number. There cant be a match that has all 3
+        else: # There is a match, maybe a well or maybe a number, but there is a match that will have 3 possible elements: well row, well column, number. There cant be a match that has all 3
             final_match = matches[-1]
             if final_match[0] and final_match[1]: # If it has the 2 first elements it is a well position
                 position_plate_seq.append(final_match[0]+final_match[1])
                 row_position = final_match[0]
                 column_position = final_match[1]
             else: # If there is not the first and second element but the third, it is a number position
-                if int(final_match[2]) < 1 and int(final_match[2]) > 96: # It cant fit in a 96-well plate
-                    print(f" WARNING: We have found an identifier that corresponds to a number, {final_match[2]} but it is not between 1 and 96, which is incompatible with the current program that only can handle 96-well plates")
+                if int(final_match[2]) < 1 or int(final_match[2]) > 96: # It cant fit in a 96-well plate
+                    print(f" WARNING: We have found an identifier that corresponds to a number, {final_match[2]} but it is not between 1 and 96, which is incompatible with the current program that only can handle 96-well plates\n")
                     everything_good = False
                     position_plate_seq.append(float('nan'))
                 else:
@@ -651,12 +653,12 @@ if args.identity != None:
             try:
                 identity_sample.append(map_identities[map_identities["Row/Column"]==row_position][str(int(column_position))].values[0])
             except:
-                print(f" WARNING: The sequence well position {row_position+str(int(column_position))} was not found in {args.identity}")
+                print(f" WARNING: The sequence well position {row_position+str(int(column_position))} was not found in {args.identity}\n")
                 identity_sample.append(float('nan'))
             
             if args.summaryMap: # In case the summary map argument is given, the position in the final map will be filled with the locus
                 if row_position not in summary_map.index or int(column_position) not in summary_map.columns:
-                    print(f" The sequence well position {row_position+str(int(column_position))} cannot be placed in a table with 1-12 columns and A-H rows so it wont be included in the final summary map of locus-well")
+                    print(f" The sequence well position {row_position+str(int(column_position))} cannot be placed in a table with 1-12 columns and A-H rows so it wont be included in the final summary map of locus-well\n")
                 else:
                     summary_map.at[row_position, int(column_position)] = locus
         else:
