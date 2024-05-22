@@ -1,0 +1,63 @@
+---
+Keywords: analysis, annotation, high-throughput
+Script: 
+ name: ScriptAllignmentAnnotation.py
+ title: Bacterial Insertions in Genome Annotation using BLASTn
+ version: 2.0.0
+ description: >
+  Using BLASTn the fasta reads will be annotated in the genome provided and given a table with defined data
+ downloadURL: https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPuEntries/LAPu-InsertsGenAnnotation-2.0.0
+ date: 22/05/2024
+Author:
+ name: Biocomputation Lab
+ institution: CBGP UPM-INIA
+ email: angel.goni@upm.es
+ web: https://biocomputationlab.com/
+Language:
+ name: python
+ version: 3.11.9
+ download: https://www.python.org/downloads/
+Environment:
+ system: Ubuntu
+ osVersion: 20.04.4
+System Requirements:
+ - "BLASTn <= 2.9.0"
+ - "sickle >= 1.33"
+ - "fastQC >= 0.11.9"
+Python Requirements:
+ - "pandas >= 2.1.03"
+ - "biopython >= 1.81"
+ - "openpyxl >= 3.1.2"
+ - "subprocess"
+ - "os"
+ - "argparse"
+ - "sys"
+Input:
+ minNumerArguments: 4
+ directoryReads:
+  description: path to the directory with all the sequence that are going to be allign with the genome and also the quality files with those sequences if neccessary
+  value: path
+ extensionReads: 
+  description: value that will correspond to the extension of the reads that are going to be in the folder established in the argument directoryReads
+  value: string 
+ genomeSequence:
+  description: file that contains the sequence of the genome that the sequences in directoryReads are going to be allign 
+  extension: FASTA
+ genomeAnnotation:
+  description: file that contains the description and annotation of the genome in genomeSequence in a table format
+  extension: CSV
+Output:
+ minNumberOutputFiles: 3
+ value: directory by default called results_script_blast with at least 3 files
+ all_reads_merged.fasta: FASTA file with all the sequences in the directoryReads joined one after another
+ all_seq_aligned.tsv: TSV file with the output given by BLASTn of alligning all_reads_merged.fasta with the file genomeSequence 
+ table_reads_genes_description.csv: CSV file with a table where the hits between the allignments of the sequences in directoryReads and the Locus in the genomeAnnotation file are shown, between other data associated to both the allignment and annotation  
+Comments: >
+ For more information perform in a command line the command "python [name_file_alignment].py -h"
+ where a more detailed manual information is provided and all possible inputs and ouputs are explained
+ For an example of the files that can be providede and outputs check the github page
+ https://github.com/Biocomputation-CBGP/LAPrepository/tree/main/LAPuEntries/LAPu-InsertsGenAnnotation-2.0.0
+ , the LAP page of the LAPu entry
+ https://www.laprepo.cbgp.upm.es/protocol/bacterial-insertions-in-genome-annotation-using-blastn-v2-0-0/
+ or the protocols.io entry of this program
+ https://www.protocols.io/view/bacterial-genome-annotation-script-using-blastn-dm6gpjrb1gzp
